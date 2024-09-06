@@ -14,11 +14,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // List of icons for navigation items
   final List<IconData> _icons = [
-    Icons.home,
+    Icons.home_outlined,
     Icons.menu, // Three-dashed row icon for Categories
-    Icons.shopping_cart,
-    Icons.local_offer,
-    Icons.account_circle, // Changed person icon to account circle
+    Icons.shopping_cart_outlined,
+    Icons.local_offer_outlined,
+    Icons.account_circle_outlined, // Changed person icon to account circle
   ];
 
   final List<String> _labels = [
@@ -48,39 +48,65 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: bColor,
       appBar: AppBar(
-        title: Row(
-          children: <Widget>[
-            Image.asset(
-              'assets/loggo.png',
-              height: 45,
-            ),
-            SizedBox(width: 1),
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'What are you looking for?',
-                  filled: true,
-                  fillColor: const Color.fromARGB(239, 204, 201, 201),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+        backgroundColor: Colors.white, // Set AppBar background color to white
+        elevation:
+            _selectedIndex == 0 ? 0 : 0, // Remove shadow for Account screen
+        title: _selectedIndex == 4 // Check if the selected index is for Account
+            ? Center(
+                child: Image.asset(
+                  'assets/favlog.png', // Display favlog.png for Account screen
+                  height: 120,
                 ),
+              )
+            : Row(
+                children: <Widget>[
+                  Image.asset(
+                    'assets/loggo.png',
+                    height: 45,
+                  ),
+                  SizedBox(width: 0), // Adjust spacing if needed
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal:
+                              10), // Added padding for better appearance
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'What are you looking for?',
+                          hintStyle: TextStyle(
+                            fontSize: 13, // Adjust font size for hint text
+                            color: const Color.fromARGB(255, 150, 149,
+                                149), // Optional: Set hint text color
+                          ),
+                          filled: true,
+                          fillColor: const Color.fromARGB(
+                              255, 248, 248, 248), // Set fill color to white
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding:
+                              EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 0), // Adjust spacing if needed
+                  IconButton(
+                    icon: Icon(
+                      Icons.favorite_border,
+                      color: Colors.black, // Set icon color to black
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => FavoritesScreen()),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ),
-            IconButton(
-              icon: Icon(Icons.favorite_border),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FavoritesScreen()),
-                );
-              },
-            ),
-          ],
-        ),
       ),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),

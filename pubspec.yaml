@@ -75,6 +75,7 @@ flutter:
    - assets/icon/alsaificon.png
    - assets/loggo.png
    - assets/favlog.png
+   - assets/favo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
