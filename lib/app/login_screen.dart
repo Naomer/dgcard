@@ -7,9 +7,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool isPhoneSelected = true;
-  bool isEmailSelected = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
           height: 120,
         ),
         centerTitle: true,
+        backgroundColor: Colors.white, // White background color for AppBar
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -31,14 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1), // Shadow color
-                    offset: Offset(100, 1000), // Shadow offset
+                    offset: Offset(0, 2), // Shadow offset
                     blurRadius: 4, // Shadow blur radius
                   ),
                 ],
               ),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -59,7 +58,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
                         'Choose your login method',
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                            color: const Color.fromARGB(255, 94, 92, 92)),
                       ),
                     ),
                     Expanded(
@@ -70,84 +70,81 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 57),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isPhoneSelected = true;
-                          isEmailSelected = false;
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isPhoneSelected ? Colors.red : Colors.white,
-                          border: Border.all(color: Colors.red),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            bottomLeft: Radius.circular(8),
+                    SizedBox(
+                      width: 137, // Custom width for the button
+                      height: 107, // Custom height for the button
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Handle phone number login action
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                              255, 187, 20, 8), // Fixed color
+                          foregroundColor: Colors.white, // Text color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: const Color.fromARGB(255, 187, 20, 8),
+                            ),
                           ),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.phone,
-                              color: isPhoneSelected
-                                  ? Colors.white
-                                  : const Color.fromARGB(255, 156, 20, 10),
+                              Icons.smartphone_outlined,
+                              color: Colors.white,
+                              size: 37, // Increase icon size
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: 15),
                             Text(
                               'Phone Number',
                               style: TextStyle(
-                                color: isPhoneSelected
-                                    ? Colors.white
-                                    : const Color.fromARGB(255, 151, 18, 8),
+                                color: const Color.fromARGB(255, 243, 242, 242),
+                                fontSize: 12, // Adjust text size
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isPhoneSelected = false;
-                          isEmailSelected = true;
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: !isPhoneSelected
-                              ? const Color.fromARGB(255, 182, 25, 14)
-                              : Colors.white,
-                          border: Border.all(
-                              color: const Color.fromARGB(255, 170, 18, 7)),
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(8),
-                            bottomRight: Radius.circular(8),
+                    SizedBox(width: 28), // Increase the space between buttons
+                    SizedBox(
+                      width: 137, // Custom width for the button
+                      height: 107, // Custom height for the button
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Handle email address login action
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                              255, 187, 20, 8), // Fixed color
+                          foregroundColor: Colors.white, // Text color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: const Color.fromARGB(255, 187, 20, 8),
+                            ),
                           ),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.email,
-                              color:
-                                  !isPhoneSelected ? Colors.white : Colors.red,
+                              Icons.email_outlined,
+                              color: Colors.white,
+                              size: 37, // Increase icon size
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: 15),
                             Text(
-                              'E-mail Address',
+                              'E-Mail Address',
                               style: TextStyle(
-                                color: !isPhoneSelected
-                                    ? Colors.white
-                                    : const Color.fromARGB(255, 168, 16, 5),
+                                color: Colors.white,
+                                fontSize: 12, // Adjust text size
                               ),
                             ),
                           ],
@@ -156,65 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
-                isPhoneSelected
-                    ? Column(
-                        children: [
-                          Row(
-                            children: [
-                              DropdownButton<String>(
-                                value: '+966',
-                                items: <String>['+966', '+971', '+965', '+968']
-                                    .map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                                onChanged: (newValue) {},
-                              ),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: 'Phone Number',
-                                    hintText: 'Phone Number',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'We\'ll text you a code',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          TextField(
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              labelText: 'E-mail Address',
-                              hintText: 'E-mail Address',
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'We\'ll text you a code',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                SizedBox(height: 16),
+                SizedBox(height: 60),
                 Row(
                   children: [
                     Expanded(
@@ -227,7 +166,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
                         'OR',
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                            color: const Color.fromARGB(255, 94, 92, 92)),
                       ),
                     ),
                     Expanded(
@@ -238,35 +178,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(
-                        255, 219, 36, 4), // Red background color
-                    padding: EdgeInsets.symmetric(vertical: 11),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero, // Straight edges
+                SizedBox(height: 35),
+                SizedBox(
+                  width: double.infinity, // Full width for the button
+                  height: 48, // Custom height for the button
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 243, 61, 16), // Red background color
+                      padding:
+                          EdgeInsets.symmetric(vertical: 0), // No extra padding
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero, // Straight edges
+                      ),
                     ),
-                    minimumSize: Size(double.infinity,
-                        44), // Make button full width and adjust height
-                  ),
-                  onPressed: () {
-                    // Google login functionality here
-                  },
-                  icon: FaIcon(
-                    FontAwesomeIcons.google,
-                    color: Colors.white, // Set Google icon color to white
-                  ),
-                  label: Text(
-                    'LOGIN WITH GOOGLE',
-                    style: TextStyle(
-                      color: Colors.white, // Set text color to white
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal, // Unbolded text
+                    onPressed: () {
+                      // Google login functionality here
+                    },
+                    icon: FaIcon(
+                      FontAwesomeIcons.google,
+                      color: Colors.white, // Set Google icon color to white
+                      size: 24, // Increase icon size
+                    ),
+                    label: Text(
+                      'LOGIN WITH GOOGLE',
+                      style: TextStyle(
+                        color: Colors.white, // Set text color to white
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal, // Unbolded text
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 25),
                 GestureDetector(
                   onTap: () {
                     // Navigate to the registration screen
@@ -274,7 +218,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: RichText(
                     text: TextSpan(
                       text: 'Don\'t have an account? ',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 94, 92, 92)),
                       children: [
                         TextSpan(
                           text: 'REGISTER NOW',
