@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:alsaif_gallery/app/cartscreen.dart';
 import 'package:alsaif_gallery/app/categories_screen.dart';
 import 'package:alsaif_gallery/app/favorites_screen.dart';
 import 'package:alsaif_gallery/app/account.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -13,7 +15,6 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   Color bColor = Colors.white;
-  int _selectedCategoryIndex = 0; // Track selected category index
   late TabController _tabController;
 
   final List<String> _categories = [
@@ -42,28 +43,37 @@ class _HomeScreenState extends State<HomeScreen>
     'Account',
   ];
 
-  static List<Widget> _widgetOptions = <Widget>[
+  final List<Widget> _widgetOptions = <Widget>[
     const Text('Home Page'),
     CategoriesScreen(),
-    const Text('Cart'),
+    CartScreen(),
     const Text('Offers'),
     Account(),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  // List of images for the top carousel slider
+  final List<String> _topBanners = [
+    'assets/payment_banner.png',
+    'assets/paywitharab.png',
+  ];
+
+  // List of images for the main carousel slider
+  final List<String> _mainBanners = [
+    'assets/50perbanner.png',
+    'assets/banner2.png',
+    'assets/banner3.png',
+    'assets/banner4.png',
+    'assets/banner5.png',
+  ];
+
+  int _currentMainBannerIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _categories.length, vsync: this);
     _tabController.addListener(() {
-      setState(() {
-        _selectedCategoryIndex = _tabController.index;
-      });
+      setState(() {});
     });
   }
 
@@ -73,66 +83,76 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bColor,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: _selectedIndex == 0 ? 0 : 0,
-        title: _selectedIndex == 4
-            ? Center(
-                child: Image.asset(
-                  'assets/favlog.png',
-                  height: 120,
-                ),
-              )
-            : Row(
-                children: <Widget>[
-                  Image.asset(
-                    'assets/loggo.png',
-                    height: 45,
-                  ),
-                  SizedBox(width: 0),
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'What are you looking for?',
-                          hintStyle: TextStyle(
-                            fontSize: 13,
-                            color: const Color.fromARGB(255, 150, 149, 149),
-                          ),
-                          filled: true,
-                          fillColor: const Color.fromARGB(255, 248, 248, 248),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                        ),
+      appBar: _selectedIndex == 2
+          ? null // Remove AppBar when in CartScreen
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: _selectedIndex == 0 ? 0 : 0,
+              title: _selectedIndex == 4
+                  ? Center(
+                      child: Image.asset(
+                        'assets/favlog.png',
+                        height: 120,
                       ),
+                    )
+                  : Row(
+                      children: <Widget>[
+                        Image.asset(
+                          'assets/loggo.png',
+                          height: 45,
+                        ),
+                        SizedBox(width: 0),
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'What are you looking for?',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color:
+                                      const Color.fromARGB(255, 150, 149, 149),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    const Color.fromARGB(255, 248, 248, 248),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 0, horizontal: 10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 0),
+                        IconButton(
+                          icon: Icon(
+                            Icons.favorite_border,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => FavoritesScreen()),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 0),
-                  IconButton(
-                    icon: Icon(
-                      Icons.favorite_border,
-                      color: Colors.black,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => FavoritesScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-      ),
+            ),
       body: _selectedIndex == 0
           ? Column(
               children: [
@@ -186,13 +206,87 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
 
-                // Image displayed below the TabBar
-                Image.asset(
-                  'assets/payment_banner.png', // Replace with your image asset
-                  height: 30, // Adjust height
-                  width: double.infinity, // Full width
-                  fit: BoxFit.cover, // Adjust fit to cover the container
-                ),
+                // Show carousel sliders only if "All" category is selected
+                if (_tabController.index == 0) ...[
+                  // Top carousel slider
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      height: 37.0,
+                      autoPlay: true,
+                      viewportFraction: 1.0,
+                      enlargeCenterPage: true,
+                      onPageChanged: (index, reason) {
+                        setState(() {});
+                      },
+                    ),
+                    items: _topBanners.map((banner) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: EdgeInsets.symmetric(horizontal: 5.0),
+                            decoration: BoxDecoration(
+                              color: Colors.amber,
+                            ),
+                            child: Image.asset(banner, fit: BoxFit.cover),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+
+                  // Main carousel slider
+                  Column(
+                    children: [
+                      CarouselSlider(
+                        options: CarouselOptions(
+                          height: 220.0,
+                          autoPlay: true,
+                          viewportFraction: 1.0,
+                          enlargeCenterPage: true,
+                          onPageChanged: (index, reason) {
+                            setState(() {
+                              _currentMainBannerIndex = index;
+                            });
+                          },
+                        ),
+                        items: _mainBanners.map((banner) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return Container(
+                                width: MediaQuery.of(context).size.width,
+                                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber,
+                                ),
+                                child: Image.asset(banner, fit: BoxFit.cover),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      // Page indicators
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _mainBanners.length,
+                          (index) => Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4.0),
+                            width: 8.0,
+                            height: 8.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _currentMainBannerIndex == index
+                                  ? const Color.fromARGB(255, 189, 20, 8)
+                                  : const Color.fromARGB(255, 189, 189, 189),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
 
                 Expanded(
                   child: Container(
@@ -200,13 +294,18 @@ class _HomeScreenState extends State<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: _categories.map((category) {
-                        return Center(
-                          child: Text(
-                            category, // Display category content
-                            style: TextStyle(
-                                fontSize: 32, fontWeight: FontWeight.bold),
-                          ),
-                        );
+                        // Show content conditionally based on category
+                        if (category == 'All') {
+                          return Container(); // Placeholder if no content is needed for "All"
+                        } else {
+                          return Center(
+                            child: Text(
+                              category, // Display category content
+                              style: TextStyle(
+                                  fontSize: 32, fontWeight: FontWeight.bold),
+                            ),
+                          );
+                        }
                       }).toList(),
                     ),
                   ),
@@ -232,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen>
                   iconData,
                   size: 27,
                   color: _selectedIndex == index
-                      ? const Color.fromARGB(255, 189, 20, 8)
+                      ? const Color.fromARGB(255, 196, 41, 30)
                       : const Color.fromARGB(255, 80, 80, 80),
                 ),
                 SizedBox(height: 2),
