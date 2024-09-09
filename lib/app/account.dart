@@ -132,27 +132,30 @@ class Account extends StatelessWidget {
                     ),
                     IconButton(
                       icon: FaIcon(FontAwesomeIcons.instagram,
-                          color: Colors.black),
+                          color: const Color.fromARGB(255, 77, 75, 75)),
                       onPressed: () {
                         // Add your Instagram link here
                       },
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 25),
                 Text(
-                  '• Shipping and delivery information\n'
-                  '• Terms and conditions\n'
-                  '• Return policy\n'
+                  '• Shipping and delivery information     '
                   '• How to buy\n'
+                  '\n'
+                  '• Terms and conditions                          '
                   '• FAQs\n'
+                  '\n'
+                  '• Return policy'
                   '• Warranty',
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: 11),
                 ),
                 SizedBox(height: 10),
                 Center(
                   child: Text(
-                    'Alsaif Gallery © • All rights reserved.',
+                    '\n'
+                    'Alsaif Gallery © 2024 • All rights reserved.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),

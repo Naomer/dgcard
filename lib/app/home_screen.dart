@@ -1,3 +1,4 @@
+import 'package:alsaif_gallery/app/categories_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:alsaif_gallery/app/favorites_screen.dart';
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static List<Widget> _widgetOptions = <Widget>[
     const Text('Home Page'),
-    const Text('Categories'),
+    CategoriesScreen(),
     const Text('Cart'),
     const Text('Offers'),
     Account(), // Use the Account widget here
@@ -113,9 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: bColor, // Background color behind the curve
-        color: const Color.fromARGB(255, 238, 237, 237), // Nav bar color
+        color: const Color.fromARGB(255, 243, 241, 241), // Nav bar color
         buttonBackgroundColor: const Color.fromARGB(
-            255, 231, 229, 229), // Floating button background
+            255, 243, 241, 241), // Floating button background
         height: 70, // Adjusted height for the button size
         animationDuration: Duration(milliseconds: 300), // Smooth animation
         items: _icons.asMap().entries.map((entry) {
@@ -131,17 +132,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   iconData,
                   size: 27, // Icon size remains the same
                   color: _selectedIndex == index
-                      ? Colors.red
+                      ? const Color.fromARGB(
+                          255, 189, 20, 8) // Red when selected
                       : const Color.fromARGB(
-                          255, 80, 80, 80), // Red if selected, grey if not
+                          255, 80, 80, 80), // Grey when not selected
                 ),
                 SizedBox(height: 2), // Space between icon and label
                 Text(
                   _labels[index], // Labels for the icons
                   style: TextStyle(
                     color: _selectedIndex == index
-                        ? const Color.fromARGB(255, 7, 7, 7)
-                        : const Color.fromARGB(255, 8, 8, 8),
+                        ? const Color.fromARGB(
+                            255, 189, 20, 8) // Red when selected
+                        : const Color.fromARGB(
+                            255, 80, 80, 80), // Grey when not selected
                     fontSize: 8, // Adjusted font size
                   ),
                 ),
