@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen>
   final List<Widget> _widgetOptions = <Widget>[
     const Text('Home Page'),
     CategoriesScreen(),
-    CartScreen(),
+    const Text('Offers'),
     const Text('Offers'),
     Account(),
   ];
