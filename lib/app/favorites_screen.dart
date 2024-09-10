@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alsaif_gallery/app/home_screen.dart'; // Import the HomeScreen
+// Import the HomeScreen
 
 class FavoritesScreen extends StatelessWidget {
   // Sample list of favorite items; replace with your actual data source
