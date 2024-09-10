@@ -49,61 +49,62 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
       ),
-      body: Container(
-        color: Colors.white, // Set the background color to white
-        child: Expanded(
-          child: favoriteItems.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/nocart.png', // Replace with your image path
-                        height: 250,
-                        width: 900,
-                      ),
-                      SizedBox(height: 0),
-                      Text(
-                        'Your cart is empty! Add your favourite products to it',
-                        style: TextStyle(fontSize: 11, color: Colors.black),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigator.pop(
-                          //     context); // Navigate back to the previous screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                              255, 167, 15, 4), // Button color
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 128, vertical: 13),
-                          textStyle: TextStyle(
-                            fontSize: 11,
+      body: Column(
+        children: [
+          Expanded(
+            child: favoriteItems.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/nocart.png', // Replace with your image path
+                          height: 250,
+                          width: 900,
+                        ),
+                        SizedBox(height: 0),
+                        Text(
+                          'Your cart is empty! Add your favourite products to it',
+                          style: TextStyle(fontSize: 11, color: Colors.black),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Navigator.pop(
+                            //     context); // Navigate back to the previous screen
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                                255, 167, 15, 4), // Button color
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 128, vertical: 13),
+                            textStyle: TextStyle(
+                              fontSize: 11,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.zero, // Remove curved corners
+                            ),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.zero, // Remove curved corners
+                          child: Text(
+                            'Start Shopping',
+                            style: TextStyle(color: Colors.white), // Text color
                           ),
                         ),
-                        child: Text(
-                          'Start Shopping',
-                          style: TextStyle(color: Colors.white), // Text color
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: favoriteItems.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(favoriteItems[index]),
+                      );
+                    },
                   ),
-                )
-              : ListView.builder(
-                  itemCount: favoriteItems.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(favoriteItems[index]),
-                    );
-                  },
-                ),
-        ),
+          ),
+        ],
       ),
     );
   }
