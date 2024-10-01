@@ -5,6 +5,7 @@ import 'package:alsaif_gallery/app/categories_screen.dart';
 import 'package:alsaif_gallery/app/favorites_screen.dart';
 import 'package:alsaif_gallery/app/account.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:alsaif_gallery/localization/applocalizations.dart';
 
 class HomeScreen extends StatefulWidget {
   @override

@@ -1,0 +1,19 @@
+{
+  "login": "تسجيل الدخول",
+  "register_now": "سجل الآن",
+  "language": "اللغة",
+  "country": "الدولة",
+  "allow_notifications": "السماح بالإشعارات",
+  "contact_us": "اتصل بنا",
+  "our_story": "قصتنا",
+  "loyalty_points_policy": "سياسة نقاط الولاء",
+  "privacy_policy": "سياسة الخصوصية",
+  "payment_method": "طريقة الدفع",
+  "shipping_and_delivery": "معلومات الشحن والتوصيل",
+  "how_to_buy": "كيفية الشراء",
+  "terms_and_conditions": "الشروط والأحكام",
+  "faqs": "الأسئلة الشائعة",
+  "return_policy": "سياسة الإرجاع",
+  "warranty": "الضمان",
+  "all_rights_reserved": "جميع الحقوق محفوظة."
+}

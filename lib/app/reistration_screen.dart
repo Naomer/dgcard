@@ -1,15 +1,15 @@
-import 'package:alsaif_gallery/app/reistration_screen.dart';
+import 'package:alsaif_gallery/app/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class LoginScreen extends StatefulWidget {
+class RegistrationScreen extends StatefulWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegistrationScreenState createState() => _RegistrationScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen> {
   bool showButtons = true; // Track whether buttons should be shown
-  bool isPhoneLogin = true; // Track which login method is selected
+  bool isPhoneRegistration = true; // Track which method is selected
 
   // Default values
   String _selectedCountryCode = '+966';
@@ -34,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize prefixes based on the default country code
     _updatePrefixList();
   }
 
@@ -61,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
       ),
       body: Container(
-        color: Colors.white, // Set the background color to white
+        color: Colors.white, // Set background color to white
         child: Column(
           children: [
             Container(
@@ -84,14 +83,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Text('Choose your login method',
-                            style: TextStyle(
-                                color:
-                                    const Color.fromARGB(255, 110, 110, 110))),
+                            style: TextStyle(color: Colors.grey)),
                       ),
                       Expanded(
-                          child: Divider(
-                              color: const Color.fromARGB(255, 105, 105, 105),
-                              thickness: 1)),
+                          child: Divider(color: Colors.grey, thickness: 1)),
                     ],
                   ),
                   SizedBox(height: 40),
@@ -99,19 +94,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildLoginButton(
+                            _buildRegistrationButton(
                                 Icons.smartphone_outlined, 'Phone Number', () {
                               setState(() {
                                 showButtons = false;
-                                isPhoneLogin = true; // Default to phone login
+                                isPhoneRegistration = true;
                               });
                             }),
                             SizedBox(width: 28),
-                            _buildLoginButton(
+                            _buildRegistrationButton(
                                 Icons.email_outlined, 'E-Mail Address', () {
                               setState(() {
                                 showButtons = false;
-                                isPhoneLogin = false; // Default to email login
+                                isPhoneRegistration = false;
                               });
                             }),
                           ],
@@ -132,13 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: GestureDetector(
                                       onTap: () {
                                         setState(() {
-                                          isPhoneLogin =
-                                              true; // Select phone login
+                                          isPhoneRegistration = true;
                                         });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: isPhoneLogin
+                                          color: isPhoneRegistration
                                               ? Colors.white
                                               : const Color.fromARGB(
                                                   255, 187, 20, 8),
@@ -154,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: Text(
                                             'Phone Number',
                                             style: TextStyle(
-                                              color: isPhoneLogin
+                                              color: isPhoneRegistration
                                                   ? const Color.fromARGB(
                                                       255, 187, 20, 8)
                                                   : Colors.white,
@@ -168,13 +162,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: GestureDetector(
                                       onTap: () {
                                         setState(() {
-                                          isPhoneLogin =
-                                              false; // Select email login
+                                          isPhoneRegistration = false;
                                         });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: isPhoneLogin
+                                          color: isPhoneRegistration
                                               ? const Color.fromARGB(
                                                   255, 187, 20, 8)
                                               : Colors.white,
@@ -190,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: Text(
                                             'E-Mail Address',
                                             style: TextStyle(
-                                              color: isPhoneLogin
+                                              color: isPhoneRegistration
                                                   ? Colors.white
                                                   : const Color.fromARGB(
                                                       255, 187, 20, 8),
@@ -206,11 +199,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(
                               height: 13,
                             ),
-                            // Input field based on selected login method
+                            // Input field based on selected registration method
                             SizedBox(
                               width: 300,
                               height: 47,
-                              child: isPhoneLogin
+                              child: isPhoneRegistration
                                   ? TextField(
                                       decoration: InputDecoration(
                                         prefixIcon: Row(
@@ -232,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 setState(() {
                                                   _selectedCountryCode =
                                                       newValue!;
-                                                  _updatePrefixList(); // Update the prefix list
+                                                  _updatePrefixList();
                                                 });
                                               },
                                             ),
@@ -287,17 +280,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 backgroundColor:
                                     const Color.fromARGB(255, 199, 18, 5),
                                 padding: EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 130),
+                                    vertical: 15, horizontal: 109),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.zero,
                                 ),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                // Handle registration here
+                              },
                               child: Text(
-                                'Login',
+                                'Register now',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: 13,
                                 ),
                               ),
                             ),
@@ -351,21 +346,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(height: 25),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                RegistrationScreen()), // Navigate to LoginScreen
-                      );
-                      // Navigate to registration
+                      Navigator.pop(context);
                     },
                     child: RichText(
                       text: TextSpan(
-                        text: 'Don\'t have an account? ',
+                        text: 'Already have an account? ',
                         style: TextStyle(color: Colors.grey),
                         children: [
                           TextSpan(
-                            text: 'REGISTER NOW',
+                            text: 'LOGIN',
                             style: TextStyle(
                                 color: Colors.black,
                                 decoration: TextDecoration.underline),
@@ -373,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -384,17 +373,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   List<String> _getPrefixList() {
-    switch (_selectedCountryCode) {
-      case '+966':
-        return _prefixes966;
-      case '+971':
-        return _prefixes971;
-      default:
-        return _prefixesDefault;
+    if (_selectedCountryCode == '+966') {
+      return _prefixes966;
+    } else if (_selectedCountryCode == '+971') {
+      return _prefixes971;
+    } else {
+      return _prefixesDefault;
     }
   }
 
-  Widget _buildLoginButton(IconData icon, String text, VoidCallback onPressed) {
+  Widget _buildRegistrationButton(
+      IconData icon, String text, VoidCallback onPressed) {
     return SizedBox(
       width: 137,
       height: 107,

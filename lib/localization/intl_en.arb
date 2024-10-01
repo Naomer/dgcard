@@ -1,0 +1,19 @@
+{
+  "login": "Login",
+  "register_now": "Register now",
+  "language": "Language",
+  "country": "Country",
+  "allow_notifications": "Allow Notifications",
+  "contact_us": "Contact Us",
+  "our_story": "Our Story",
+  "loyalty_points_policy": "Loyalty Points Policy",
+  "privacy_policy": "Privacy Policy",
+  "payment_method": "Payment Method",
+  "shipping_and_delivery": "Shipping and delivery information",
+  "how_to_buy": "How to buy",
+  "terms_and_conditions": "Terms and conditions",
+  "faqs": "FAQs",
+  "return_policy": "Return policy",
+  "warranty": "Warranty",
+  "all_rights_reserved": "All rights reserved."
+}
