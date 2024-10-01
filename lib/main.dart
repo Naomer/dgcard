@@ -1,33 +1,43 @@
-import 'package:alsaif_gallery/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:alsaif_gallery/app/home_screen.dart'; // Your HomeScreen
-import 'package:flutter_localizations/flutter_localizations.dart'; // Localization package
-import 'package:alsaif_gallery/localization/applocalizations.dart'; // Custom localizatio; // Import the SplashScreen
+import 'package:provider/provider.dart'; // Import provider for state management
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'language_provider.dart'; // This is a new file for language management
+import 'splash_screen.dart'; // Import your SplashScreen here
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LanguageProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Alsaif Gallery',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: SplashScreen(), // Show SplashScreen first
-      supportedLocales: [
-        Locale('en', ''), // English
-        Locale('ar', ''), // Arabic
-      ],
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        // Add your custom localization delegate here
-      ],
+    // Accessing the language provider to get the locale
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return MaterialApp(
+          title: 'Alsaif Gallery',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.red,
+          ),
+          locale: languageProvider.locale, // Dynamically update the locale
+          supportedLocales: [
+            Locale('en', ''), // English
+            Locale('ar', ''), // Arabic
+          ],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: SplashScreen(), // First screen of your app
+        );
+      },
     );
   }
 }

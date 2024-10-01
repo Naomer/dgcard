@@ -5,6 +5,8 @@ import 'package:alsaif_gallery/app/categories_screen.dart';
 import 'package:alsaif_gallery/app/favorites_screen.dart';
 import 'package:alsaif_gallery/app/account.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:alsaif_gallery/language_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:alsaif_gallery/localization/applocalizations.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -68,6 +70,14 @@ class _HomeScreenState extends State<HomeScreen>
   ];
 
   int _currentMainBannerIndex = 0;
+
+  final List<String> _bottomBanners = [
+    'assets/banner2.png',
+    'assets/banner4.png',
+    'assets/banner5.png',
+    'assets/banner2.png',
+    'assets/banner3.png',
+  ];
 
   @override
   void initState() {
@@ -283,6 +293,31 @@ class _HomeScreenState extends State<HomeScreen>
                                   : const Color.fromARGB(255, 189, 189, 189),
                             ),
                           ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        child: CarouselSlider(
+                          options: CarouselOptions(
+                            height: 150.0, // Adjust height as needed
+                            autoPlay: true,
+                            viewportFraction: 1.0,
+                            enlargeCenterPage: true,
+                          ),
+                          items: _bottomBanners.map((banner) {
+                            return Builder(
+                              builder: (BuildContext context) {
+                                return Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber,
+                                  ),
+                                  child: Image.asset(banner, fit: BoxFit.cover),
+                                );
+                              },
+                            );
+                          }).toList(),
                         ),
                       ),
                     ],

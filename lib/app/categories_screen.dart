@@ -1,3 +1,4 @@
+import 'package:alsaif_gallery/app/product/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -8,6 +9,7 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   late String selectedCategory;
+  int selectedIndex = 0; // Track the selected index
 
   final List<Map<String, dynamic>> categories = [
     {'name': 'Electrical\nAppliances', 'icon': FontAwesomeIcons.plug},
@@ -28,7 +30,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     {'name': 'Product 6', 'image': 'assets/blender.png'},
   ];
 
-  // Map to store banner images for each category
   final Map<String, String> categoryBanners = {
     'Electrical\nAppliances': 'assets/electrical_appliances_banner.png',
     'Best\nCategories': 'assets/best_categories.png',
@@ -44,17 +45,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     selectedCategory = 'Electrical\nAppliances';
   }
 
-  void _selectCategory(String categoryName) {
+  void _selectCategory(String categoryName, int index) {
     setState(() {
       selectedCategory = categoryName;
+      selectedIndex = index; // Update selected index
     });
   }
 
-  void _navigateToProductList(BuildContext context, String productName) {
+  void _navigateToProductList(
+      BuildContext context, String categoryName, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductListScreen(productName: productName),
+        builder: (context) => ProductListScreen(
+            categoryName: categoryName, selectedIndex: index), // Pass index
       ),
     );
   }
@@ -77,7 +81,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
                 return GestureDetector(
                   onTap: () {
-                    _selectCategory(category['name']);
+                    _selectCategory(
+                        category['name'], index); // Pass index on select
                   },
                   child: Column(
                     children: [
@@ -158,7 +163,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          _navigateToProductList(context, product['name']!);
+                          // Only pass the category name and the selected index
+                          _navigateToProductList(
+                              context, selectedCategory, selectedIndex);
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -185,26 +192,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Screen to display a list of available products
-class ProductListScreen extends StatelessWidget {
-  final String productName;
-
-  const ProductListScreen({Key? key, required this.productName})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('$productName Products'),
-      ),
-      body: Center(
-        child: Text('Displaying all $productName products here.'),
       ),
     );
   }
