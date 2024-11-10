@@ -1,4 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Add internet permission -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Add location permissions -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- Add permission for notifications (Post Notifications for Android 13 and above) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:required="false"/>
+
     <application
         android:label="alsaif_gallery"
         android:name="${applicationName}"

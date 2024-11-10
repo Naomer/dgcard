@@ -1,10 +1,10 @@
-import 'package:alsaif_gallery/app/favorites_screen.dart';
+import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
 
 class CartScreen extends StatefulWidget {
   final int productCount;
 
-  CartScreen({this.productCount = 0});
+  const CartScreen({super.key, this.productCount = 0});
 
   @override
   _CartScreenState createState() => _CartScreenState();
@@ -53,6 +53,10 @@ class _CartScreenState extends State<CartScreen> {
         color: Colors.white, // Set the background color to white
         child: Column(
           children: [
+            Container(
+              height: 1.0,
+              color: Colors.grey[300],
+            ),
             Expanded(
               child: favoriteItems.isEmpty
                   ? Center(

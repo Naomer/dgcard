@@ -10,6 +10,12 @@ class LanguageProvider with ChangeNotifier {
     notifyListeners(); // Notify the app that the language has changed
   }
 
+  // Set language directly
+  void setLanguage(bool isArabic) {
+    _isArabic = isArabic;
+    notifyListeners(); // Notify listeners of the change
+  }
+
   Locale get locale => _isArabic ? Locale('ar') : Locale('en');
 
   TextDirection get textDirection =>

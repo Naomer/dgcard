@@ -1,8 +1,10 @@
+import 'package:alsaif_gallery/country_language%20_selection.dart';
+import 'package:alsaif_gallery/language_provider.dart';
+import 'package:alsaif_gallery/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Import provider for state management
+import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'language_provider.dart'; // This is a new file for language management
-import 'splash_screen.dart'; // Import your SplashScreen here
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(
@@ -13,10 +15,36 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isFirstLaunch = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool seen = prefs.getBool('seenCountryLanguageSelection') ??
+        false; // Provide default value
+
+    if (seen) {
+      setState(() {
+        _isFirstLaunch = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Accessing the language provider to get the locale
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         return MaterialApp(
@@ -25,17 +53,20 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          locale: languageProvider.locale, // Dynamically update the locale
+          locale: languageProvider.locale ??
+              Locale('en', ''), // Set default locale if null
           supportedLocales: [
-            Locale('en', ''), // English
-            Locale('ar', ''), // Arabic
+            Locale('en', ''),
+            Locale('ar', ''),
           ],
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: SplashScreen(), // First screen of your app
+          home: _isFirstLaunch
+              ? CountryLanguageSelectionScreen()
+              : SplashScreen(),
         );
       },
     );

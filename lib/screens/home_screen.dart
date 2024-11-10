@@ -1,15 +1,15 @@
+import 'package:alsaif_gallery/screens/offers_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:alsaif_gallery/app/cartscreen.dart';
-import 'package:alsaif_gallery/app/categories_screen.dart';
-import 'package:alsaif_gallery/app/favorites_screen.dart';
-import 'package:alsaif_gallery/app/account.dart';
+import 'package:alsaif_gallery/screens/cartscreen.dart';
+import 'package:alsaif_gallery/screens/categories_screen.dart';
+import 'package:alsaif_gallery/screens/favorites_screen.dart';
+import 'package:alsaif_gallery/screens/account.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:alsaif_gallery/language_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:alsaif_gallery/localization/applocalizations.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -48,9 +48,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   final List<Widget> _widgetOptions = <Widget>[
     const Text('Home Page'),
-    CategoriesScreen(),
+    CategoryScreen(),
     CartScreen(),
-    const Text('Offers'),
+    OffersScreen(),
     Account(),
   ];
 
@@ -167,6 +167,10 @@ class _HomeScreenState extends State<HomeScreen>
       body: _selectedIndex == 0
           ? Column(
               children: [
+                Container(
+                  height: 1.0,
+                  color: Colors.grey[300],
+                ),
                 // Custom TabBar with vertical lines and adjusted spacing
                 Container(
                   color: const Color.fromARGB(

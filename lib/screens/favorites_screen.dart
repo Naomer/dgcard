@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 
 class FavoritesScreen extends StatelessWidget {
   // Sample list of favorite items; replace with your actual data source
-  final List<String> favoriteItems = []; // Replace with actual favorites
+  final List<String> favoriteItems = [];
+
+  FavoritesScreen({super.key}); // Replace with actual favorites
 
   @override
   Widget build(BuildContext context) {
