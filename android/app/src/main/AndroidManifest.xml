@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:required="false"/>
 
     <application
-        android:label="alsaif_gallery"
+        android:label="Digital Card"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

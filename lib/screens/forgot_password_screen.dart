@@ -12,19 +12,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
 
-  // Mock function to simulate password reset logic
   Future<void> _sendPasswordResetEmail() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // Start loading spinner
+        _isLoading = true;
       });
 
-      // Simulating a network call for password reset
-      await Future.delayed(Duration(seconds: 2)); // Simulate delay
-
-      // You would typically send the password reset request here
-      // For demonstration, we assume it's successful
-      // You can replace this with your actual logic
+      await Future.delayed(Duration(seconds: 2));
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -36,15 +30,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       );
 
-      // Clear the email field after success
       _emailController.clear();
 
       setState(() {
-        _isLoading = false; // Stop loading spinner
+        _isLoading = false;
       });
     } else {
       setState(() {
-        _isLoading = false; // Stop loading spinner if validation fails
+        _isLoading = false;
       });
     }
   }
@@ -58,7 +51,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 0,
         shadowColor: Colors.grey,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.black), // Back arrow color
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -73,8 +66,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 20),
-
-              // Email TextFormField
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -93,10 +84,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 },
               ),
               SizedBox(height: 24),
-
-              // Send Reset Link Button
               _isLoading
-                  ? CircularProgressIndicator() // Show spinner when loading
+                  ? CircularProgressIndicator()
                   : ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -116,8 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   void dispose() {
-    _emailController
-        .dispose(); // Clean up the controller when the widget is disposed
+    _emailController.dispose();
     super.dispose();
   }
 }

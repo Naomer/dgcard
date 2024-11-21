@@ -25,7 +25,7 @@ class FavoritesApi {
     final response = await http.delete(
       Uri.parse('$baseUrl/favorites/remove/$productId'),
       headers: <String, String>{
-        'Authorization': 'Bearer $token', // Include token for authentication
+        'Authorization': 'Bearer $token',
       },
     );
 

@@ -16,7 +16,7 @@ class _OffersScreenState extends State<OffersScreen> {
       ),
       body: SingleChildScrollView(
         child: Container(
-          color: Colors.white, // Set the background color of the body to white
+          color: Colors.white,
           child: Column(
             children: [
               Container(

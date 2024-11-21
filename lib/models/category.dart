@@ -10,7 +10,7 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['_id'], // Ensure this matches your API's response
+      id: json['_id'],
       categoryName: json['name'],
       categoryLogo: json['logo'],
     );

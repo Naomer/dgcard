@@ -1,10 +1,9 @@
+import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/api/api_service.dart';
+import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import 'account.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool showSkipButton;
@@ -41,9 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
           if (widget.showSkipButton)
             TextButton(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  MaterialPageRoute(builder: (context) => MainScreen()),
                 );
               },
               child: Text('Skip',
@@ -180,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _sendPasswordReset(String email) async {
     final String url =
-        'http://localhost:1010/api/v1/user/sendForgetPasswordCode';
+        'http://alsaifgallery.onrender.com/api/v1/user/sendForgetPasswordCode';
 
     try {
       final response = await http.post(
@@ -213,8 +212,12 @@ class _LoginScreenState extends State<LoginScreen> {
           body: jsonEncode({'email': email, 'password': password}));
 
       if (response.statusCode == 200) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Account()));
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(),
+          ),
+          (route) => false,
+        );
       } else {
         _showErrorDialog('Login failed. Please check your credentials.');
       }
@@ -229,24 +232,19 @@ class _LoginScreenState extends State<LoginScreen> {
     final String phoneNumber = phoneController.text;
     final String email = emailController.text;
     final String password = passwordController.text;
-    final String userName = userNameController
-        .text; // Ensure userNameController is passed correctly
-    final String customerType = "web"; // Default customer type
+    final String userName = userNameController.text;
+    final String customerType = "web";
 
-    // Check for empty fields
     if ([firstName, lastName, phoneNumber, email, password, userName]
         .contains('')) {
       _showErrorDialog("Please fill out all fields.");
       return;
     }
-
-    // Ensure the selectedCountry is not null or empty
     if (selectedCountry.isEmpty) {
       _showErrorDialog("Please select a country.");
       return;
     }
 
-    // Construct request body
     final Map<String, dynamic> registrationData = {
       'firstName': firstName,
       'lastName': lastName,
@@ -264,24 +262,21 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode(registrationData),
       );
 
-      // Log the response for debugging
       print("Registration Response Status: ${response.statusCode}");
       print("Registration Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         if (responseBody['status'] == true) {
-          // Registration successful, navigate to the Account page
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Account()),
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
           );
         } else {
           _showErrorDialog(
               responseBody['message'] ?? 'Registration failed. Try again.');
         }
       } else {
-        // Registration failed, show error with specific response message
         final responseBody = jsonDecode(response.body);
         _showErrorDialog(
             responseBody['message'] ?? 'Registration failed. Try again.');

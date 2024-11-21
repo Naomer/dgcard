@@ -1,11 +1,10 @@
-import 'package:alsaif_gallery/screens/offers_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:alsaif_gallery/screens/cartscreen.dart';
-import 'package:alsaif_gallery/screens/categories_screen.dart';
+import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
-import 'package:alsaif_gallery/screens/account.dart';
+import 'package:flutter/material.dart';
+import 'package:alsaif_gallery/api/home_api_service.dart';
+import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,84 +13,112 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
+  final HomeApiService apiService = HomeApiService();
+  List<String> parentCategories = ['All'];
+  List<dynamic> advertisements = [];
+  bool isLoadingParent = true;
+  bool isLoadingAds = false;
+  bool isLoadingSearch = false;
+  String? selectedParentCategory;
+  String searchQuery = '';
+
+  List<dynamic> allProducts = [];
+  List<dynamic> filteredProducts = [];
+
   int _selectedIndex = 0;
+  int currentIndex = 0;
   Color bColor = Colors.white;
-  late TabController _tabController;
 
-  final List<String> _categories = [
-    'All',
-    'Big Home Appliances',
-    'Electrical Appliances',
-    'Best Categories',
-    'Kitchenware',
-    'Serveware',
-    'Home Appliances',
-  ];
+  PageController _pageController = PageController();
 
-  final List<IconData> _icons = [
-    Icons.home_outlined,
-    Icons.format_list_bulleted,
-    Icons.shopping_cart_outlined,
-    Icons.local_offer_outlined,
-    Icons.account_circle_outlined,
-  ];
-
-  final List<String> _labels = [
-    'Home',
-    'Categories',
-    'Cart',
-    'Offers',
-    'Account',
-  ];
-
-  final List<Widget> _widgetOptions = <Widget>[
-    const Text('Home Page'),
-    CategoryScreen(),
-    CartScreen(),
-    OffersScreen(),
-    Account(),
-  ];
-
-  // List of images for the top carousel slider
   final List<String> _topBanners = [
     'assets/payment_banner.png',
     'assets/paywitharab.png',
   ];
 
-  // List of images for the main carousel slider
-  final List<String> _mainBanners = [
-    'assets/50perbanner.png',
-    'assets/banner2.png',
-    'assets/banner3.png',
-    'assets/banner4.png',
-    'assets/banner5.png',
-  ];
-
-  int _currentMainBannerIndex = 0;
-
-  final List<String> _bottomBanners = [
-    'assets/banner2.png',
-    'assets/banner4.png',
-    'assets/banner5.png',
-    'assets/banner2.png',
-    'assets/banner3.png',
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-    });
+    fetchParentCategories();
+    fetchAdvertisements();
+    fetchAllProducts();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> fetchParentCategories() async {
+    try {
+      final response =
+          await apiService.get('/api/v1/category/getParentCategories');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == true && data['data'] != null) {
+          setState(() {
+            parentCategories.addAll(List<String>.from(data['data']
+                .map((category) => category['categoryName'] ?? '')));
+            selectedParentCategory =
+                parentCategories.isNotEmpty ? parentCategories[0] : null;
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error here
+    } finally {
+      setState(() {
+        isLoadingParent = false;
+      });
+    }
+  }
+
+  Future<void> fetchAdvertisements() async {
+    setState(() => isLoadingAds = true);
+    try {
+      final response = await http.get(Uri.parse(
+          "http://alsaifgallery.onrender.com/api/v1/advertisement/getSampleAdd"));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          advertisements = data['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      // Handle error here
+    } finally {
+      setState(() {
+        isLoadingAds = false;
+      });
+    }
+  }
+
+  Future<void> fetchAllProducts() async {
+    setState(() => isLoadingSearch = true);
+    try {
+      final response = await apiService.get('/api/v1/products/getAllProducts');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          allProducts = data['data'] ?? [];
+          filteredProducts = allProducts;
+        });
+      }
+    } catch (e) {
+      // Handle error here
+    } finally {
+      setState(() {
+        isLoadingSearch = false;
+      });
+    }
+  }
+
+  void filterProducts(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredProducts = allProducts
+          .where((product) => product['name']
+              .toString()
+              .toLowerCase()
+              .contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   void _onItemTapped(int index) {
@@ -103,294 +130,239 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bColor,
-      appBar: _selectedIndex == 2
-          ? null // Remove AppBar when in CartScreen
-          : AppBar(
-              backgroundColor: Colors.white,
-              elevation: _selectedIndex == 0 ? 0 : 0,
-              title: _selectedIndex == 4
-                  ? Center(
-                      child: Image.asset(
-                        'assets/favlog.png',
-                        height: 120,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset('assets/loggo.png', height: 33),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            SearchScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
                       ),
-                    )
-                  : Row(
-                      children: <Widget>[
-                        Image.asset(
-                          'assets/loggo.png',
-                          height: 45,
+                    );
+                  },
+                  child: SizedBox(
+                    height: 35.0,
+                    child: TextField(
+                      enabled: false, // Disable editing
+                      decoration: InputDecoration(
+                        hintText: 'Find it here...',
+                        hintStyle:
+                            TextStyle(fontSize: 13.0, color: Colors.grey[600]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4.0),
+                          borderSide: BorderSide.none,
                         ),
-                        SizedBox(width: 0),
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'What are you looking for?',
-                                hintStyle: TextStyle(
-                                  fontSize: 13,
-                                  color:
-                                      const Color.fromARGB(255, 150, 149, 149),
-                                ),
-                                filled: true,
-                                fillColor:
-                                    const Color.fromARGB(255, 248, 248, 248),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 0),
-                        IconButton(
-                          icon: Icon(
-                            Icons.favorite_border,
-                            color: Colors.black,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => FavoritesScreen()),
-                            );
-                          },
-                        ),
-                      ],
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 14.0),
+                        suffixIcon: Icon(Icons.search,
+                            color: Colors.grey[600], size: 20.0),
+                      ),
                     ),
+                  ),
+                ),
+              ),
             ),
+            IconButton(
+              icon: const Icon(Icons.favorite_border, color: Colors.black),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => FavoritesScreen(favoriteProducts: []),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
       body: _selectedIndex == 0
           ? Column(
               children: [
-                Container(
-                  height: 1.0,
-                  color: Colors.grey[300],
-                ),
-                // Custom TabBar with vertical lines and adjusted spacing
-                Container(
-                  color: const Color.fromARGB(
-                      255, 248, 248, 248), // TabBar background color
-                  height: 32.0, // Adjust TabBar height if needed
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    labelStyle: TextStyle(
-                        fontSize: 10, // Adjust font size
-                        fontWeight: FontWeight.bold), // Font weight
-                    unselectedLabelStyle: TextStyle(
-                        fontSize: 10), // Font size for unselected label
-                    indicator: BoxDecoration(
-                      color:
-                          Colors.transparent, // Background color of indicator
-                      border: Border(
-                        bottom: BorderSide(
-                          color: const Color.fromARGB(
-                              255, 187, 26, 14), // Underline color
-                          width: 2, // Underline width
-                        ),
-                      ),
-                    ),
-                    tabs: List.generate(_categories.length, (index) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 0), // Reduce horizontal padding
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _categories[index],
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            if (index < _categories.length - 1)
-                              Container(
-                                width: 1, // Line width
-                                height: 35, // Line height
-                                color: const Color.fromARGB(255, 189, 186, 186),
-                                margin: EdgeInsets.symmetric(
-                                    horizontal: 4), // Adjust margin
-                              ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-
-                // Show carousel sliders only if "All" category is selected
-                if (_tabController.index == 0) ...[
-                  // Top carousel slider
-                  CarouselSlider(
-                    options: CarouselOptions(
-                      height: 37.0,
-                      autoPlay: true,
-                      viewportFraction: 1.0,
-                      enlargeCenterPage: true,
-                      onPageChanged: (index, reason) {
-                        setState(() {});
-                      },
-                    ),
-                    items: _topBanners.map((banner) {
-                      return Builder(
-                        builder: (BuildContext context) {
-                          return Container(
-                            width: MediaQuery.of(context).size.width,
-                            margin: EdgeInsets.symmetric(horizontal: 5.0),
-                            decoration: BoxDecoration(
-                              color: Colors.amber,
-                            ),
-                            child: Image.asset(banner, fit: BoxFit.cover),
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ),
-
-                  // Main carousel slider
-                  Column(
-                    children: [
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 220.0,
-                          autoPlay: true,
-                          viewportFraction: 1.0,
-                          enlargeCenterPage: true,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              _currentMainBannerIndex = index;
-                            });
-                          },
-                        ),
-                        items: _mainBanners.map((banner) {
-                          return Builder(
-                            builder: (BuildContext context) {
-                              return Container(
-                                width: MediaQuery.of(context).size.width,
-                                margin: EdgeInsets.symmetric(horizontal: 5.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber,
-                                ),
-                                child: Image.asset(banner, fit: BoxFit.cover),
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
-
-                      // Page indicators
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _mainBanners.length,
-                          (index) => Container(
-                            margin: EdgeInsets.symmetric(horizontal: 4.0),
-                            width: 8.0,
-                            height: 8.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentMainBannerIndex == index
-                                  ? const Color.fromARGB(255, 189, 20, 8)
-                                  : const Color.fromARGB(255, 189, 189, 189),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.symmetric(vertical: 10.0),
-                        child: CarouselSlider(
-                          options: CarouselOptions(
-                            height: 150.0, // Adjust height as needed
-                            autoPlay: true,
-                            viewportFraction: 1.0,
-                            enlargeCenterPage: true,
-                          ),
-                          items: _bottomBanners.map((banner) {
-                            return Builder(
-                              builder: (BuildContext context) {
-                                return Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  margin: EdgeInsets.symmetric(horizontal: 5.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber,
-                                  ),
-                                  child: Image.asset(banner, fit: BoxFit.cover),
-                                );
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                Expanded(
-                  child: Container(
-                    color: Colors.white, // Main screen background color
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: _categories.map((category) {
-                        // Show content conditionally based on category
-                        if (category == 'All') {
-                          return Container(); // Placeholder if no content is needed for "All"
-                        } else {
-                          return Center(
-                            child: Text(
-                              category, // Display category content
-                              style: TextStyle(
-                                  fontSize: 32, fontWeight: FontWeight.bold),
-                            ),
-                          );
-                        }
-                      }).toList(),
-                    ),
-                  ),
-                ),
+                Container(height: 1.0, color: Colors.grey[300]),
+                searchQuery.isNotEmpty
+                    ? isLoadingSearch
+                        ? const Center(child: CircularProgressIndicator())
+                        : filteredProducts.isEmpty
+                            ? const Center(child: Text("No products found"))
+                            : ListView.builder(
+                                itemCount: filteredProducts.length,
+                                itemBuilder: (context, index) {
+                                  final product = filteredProducts[index];
+                                  return ListTile(
+                                    title: Text(
+                                        product['name'] ?? 'Unnamed Product'),
+                                    onTap: () {},
+                                  );
+                                },
+                              )
+                    : buildCategoriesAndAds(),
               ],
             )
-          : _widgetOptions[_selectedIndex], // For other screens
-      bottomNavigationBar: CurvedNavigationBar(
-        backgroundColor: bColor,
-        color: const Color.fromARGB(255, 243, 241, 241),
-        buttonBackgroundColor: const Color.fromARGB(255, 243, 241, 241),
-        height: 70,
-        animationDuration: Duration(milliseconds: 300),
-        items: _icons.asMap().entries.map((entry) {
-          int index = entry.key;
-          IconData iconData = entry.value;
-          return Container(
-            padding: EdgeInsets.all(4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  iconData,
-                  size: 27,
-                  color: _selectedIndex == index
-                      ? const Color.fromARGB(255, 196, 41, 30)
-                      : const Color.fromARGB(255, 80, 80, 80),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  _labels[index],
-                  style: TextStyle(
-                    color: _selectedIndex == index
-                        ? const Color.fromARGB(255, 189, 20, 8)
-                        : const Color.fromARGB(255, 80, 80, 80),
-                    fontSize: 8,
+          : Container(),
+    );
+  }
+
+  Widget buildCategoriesAndAds() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          height: 46,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: parentCategories.length,
+            itemBuilder: (context, index) {
+              final categoryName = parentCategories[index];
+              return Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedParentCategory = categoryName;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        border: Border(
+                          bottom: BorderSide(
+                            color: selectedParentCategory == categoryName
+                                ? Colors.red
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      child: Text(categoryName,
+                          style: const TextStyle(fontSize: 11)),
+                    ),
                   ),
-                ),
-              ],
+                  if (index < parentCategories.length - 1)
+                    VerticalDivider(
+                        color: Colors.grey[300], width: 1, thickness: 1),
+                ],
+              );
+            },
+          ),
+        ),
+        if (selectedParentCategory != null &&
+            selectedParentCategory == parentCategories.first) ...[
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 31.0,
+              autoPlay: true,
+              viewportFraction: 1.0,
+              enlargeCenterPage: true,
+              onPageChanged: (index, reason) {
+                setState(() {});
+              },
             ),
-          );
-        }).toList(),
-        onTap: _onItemTapped,
-        index: _selectedIndex,
-      ),
+            items: _topBanners.map((banner) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.symmetric(horizontal: 2.0),
+                    decoration: BoxDecoration(color: Colors.amber),
+                    child: Image.asset(banner, fit: BoxFit.cover),
+                  );
+                },
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 5),
+        ],
+        isLoadingAds
+            ? const Center(child: CircularProgressIndicator())
+            : advertisements.isEmpty
+                ? const Center(child: Text("No advertisements"))
+                : buildAdvertisements(),
+      ],
+    );
+  }
+
+  Widget buildAdvertisements() {
+    return Column(
+      children: [
+        CarouselSlider.builder(
+          itemCount: advertisements.length,
+          itemBuilder: (context, index, realIndex) {
+            final ad = advertisements[index];
+            final adImageUrl =
+                ad['imageId'] != null ? ad['imageId']['data'] : null;
+
+            return GestureDetector(
+              onTap: () {},
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 2.0),
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(8.0)),
+                child: adImageUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.network(
+                          adImageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
+                                  child: Icon(Icons.broken_image,
+                                      size: 50, color: Colors.grey)),
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(Icons.broken_image,
+                            size: 50, color: Colors.grey)),
+              ),
+            );
+          },
+          options: CarouselOptions(
+            autoPlay: true,
+            enlargeCenterPage: true,
+            aspectRatio: 16 / 9,
+            viewportFraction: 1.0,
+            onPageChanged: (index, reason) {
+              setState(() {
+                currentIndex = index;
+              });
+            },
+          ),
+        ),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(advertisements.length, (index) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
+              height: 8.0,
+              width: currentIndex == index ? 20.0 : 8.0,
+              decoration: BoxDecoration(
+                color: currentIndex == index ? Colors.red : Colors.grey,
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }

@@ -2,15 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class CartApi {
-  final String baseUrl =
-      'https://alsaifgallery.onrender.com'; // Your backend URL
+  final String baseUrl = 'https://alsaifgallery.onrender.com';
 
   Future<void> addProductToCart(String productId, String token) async {
     final response = await http.post(
       Uri.parse('$baseUrl/cart/add'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token', // Include token for authentication
+        'Authorization': 'Bearer $token',
       },
       body: json.encode({'productId': productId}),
     );
@@ -24,7 +23,7 @@ class CartApi {
     final response = await http.delete(
       Uri.parse('$baseUrl/cart/remove/$productId'),
       headers: <String, String>{
-        'Authorization': 'Bearer $token', // Include token for authentication
+        'Authorization': 'Bearer $token',
       },
     );
 

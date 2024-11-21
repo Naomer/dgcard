@@ -35,7 +35,7 @@ class UserService extends ApiService {
 
   Future<String> signInUser(String email, String password) async {
     final response = await post(
-      '/user/signIn',
+      'https://alsaifgallery.onrender.com/api/v1/user/signIn',
       body: jsonEncode({'email': email, 'password': password}),
     );
 
@@ -47,10 +47,9 @@ class UserService extends ApiService {
   }
 
   Future<User> getUserInfo(String token) async {
-    // Corrected method name
-    final response = await get('/user/getUser Info', headers: {
-      'Authorization': 'Bearer $token'
-    }); // Make sure the endpoint matches
+    final response = await get(
+        'https://alsaifgallery.onrender.com/api/v1/user/getUser Info',
+        headers: {'Authorization': 'Bearer $token'});
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body)['data']);
@@ -61,7 +60,7 @@ class UserService extends ApiService {
 
   Future<void> sendForgetPasswordCode(String email) async {
     final response = await post(
-      '/user/sendForgetPasswordCode',
+      'https://alsaifgallery.onrender.com/api/v1/user/sendForgetPasswordCode',
       body: jsonEncode({'email': email}),
     );
 
@@ -73,7 +72,7 @@ class UserService extends ApiService {
   Future<void> recoverPassword(
       String email, String code, String newPassword) async {
     final response = await post(
-      '/user/recoverPassword',
+      'https://alsaifgallery.onrender.com/api/v1/user/recoverPassword',
       body: jsonEncode({'email': email, 'code': code, 'password': newPassword}),
     );
 

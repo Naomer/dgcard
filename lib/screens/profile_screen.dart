@@ -1,201 +1,251 @@
+import 'package:alsaif_gallery/screens/account.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:alsaif_gallery/screens/Edit_profile_screen.dart';
+import 'package:alsaif_gallery/screens/favorites_screen.dart';
+import 'package:alsaif_gallery/screens/login_screen.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      home: AuthCheck(),
+    );
+  }
+}
+
+class AuthCheck extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData && snapshot.data!) {
+          return ProfileScreen();
+        } else {
+          return Account();
+        }
+      },
+    );
+  }
+
+  Future<bool> isLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
+  }
+}
 
 class ProfileScreen extends StatefulWidget {
-  final bool isPhoneRegistration; // Determine if the user registered with phone
-  final String? email; // Pass the email if registered via email
-  final String? phone; // Pass the phone if registered via phone
-
-  const ProfileScreen(
-      {super.key, this.isPhoneRegistration = true, this.email, this.phone});
-
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-
-  String selectedGender = '';
-  DateTime? birthDate;
+  bool isDarkMode = false;
+  String firstName = '';
+  String lastName = '';
+  String email = '';
 
   @override
   void initState() {
     super.initState();
-    // Initialize email and phone based on the registration type
-    if (widget.isPhoneRegistration && widget.phone != null) {
-      phoneController.text = widget.phone!;
-    } else if (!widget.isPhoneRegistration && widget.email != null) {
-      emailController.text = widget.email!;
+    fetchUserInfo();
+  }
+
+  Future<void> fetchUserInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://alsaifgallery.onrender.com/api/v1/user/getUserInfo'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          firstName = data['firstName'] ?? 'No first name';
+          lastName = data['lastName'] ?? 'No last name';
+          email = data['email'] ?? 'No email';
+        });
+      } else {
+        debugPrint('Failed to load user data: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching user info: $e');
     }
+  }
+
+  void _toggleDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+  }
+
+  Future<void> logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Image.asset(
-          'assets/favlog.png',
-          height: 120,
-        ),
+        title: Image.asset('assets/favlog.png', height: 110),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: _toggleDarkMode,
+          ),
+        ],
       ),
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // First Name Field
-              TextField(
-                controller: firstNameController,
-                decoration: InputDecoration(
-                  labelText: 'First Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-
-              // Last Name Field
-              TextField(
-                controller: lastNameController,
-                decoration: InputDecoration(
-                  labelText: 'Last Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-
-              // Phone Number Field (shown if registered via email)
-              if (!widget.isPhoneRegistration) ...[
-                TextField(
-                  controller: phoneController,
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
-              ],
-
-              // Email Field (shown if registered via phone)
-              if (widget.isPhoneRegistration) ...[
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email Address',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
-              ],
-
-              // Gender Selection
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _genderOption('Male', Icons.male),
-                  SizedBox(width: 20),
-                  _genderOption('Female', Icons.female),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Birthdate Field
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: birthDate == null
-                            ? 'Birthdate'
-                            : "${birthDate!.day}/${birthDate!.month}/${birthDate!.year}",
-                        border: OutlineInputBorder(),
-                      ),
-                      onTap: _selectBirthdate,
+      body: Column(
+        children: [
+          Container(height: 1.0, color: Colors.grey[300]),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Welcome, ',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 82, 81, 81),
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          '$firstName $lastName',
+                          style: TextStyle(fontSize: 10),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      email,
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditProfileScreen()),
+                    );
+                  },
+                  child: Row(
+                    children: const [
+                      Text(
+                        'Settings  ',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 177, 16, 16),
+                          fontSize: 15,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Color.fromARGB(255, 165, 35, 25),
+                        size: 16,
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildCircularButton(
+                context,
+                icon: Icons.shopping_cart,
+                label: 'Orders',
+                onTap: () {},
               ),
-              SizedBox(height: 30),
-
-              // Confirm Button
-              ElevatedButton(
-                onPressed: _confirmProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Text(
-                  'Confirm',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+              _buildCircularButton(
+                context,
+                icon: Icons.assignment_return,
+                label: 'Returns',
+                onTap: () {},
+              ),
+              _buildCircularButton(
+                context,
+                icon: Icons.favorite,
+                label: 'Favorites',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => FavoritesScreen(
+                              favoriteProducts: [],
+                            )),
+                  );
+                },
               ),
             ],
           ),
-        ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () => logout(context),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.logout, color: Colors.red),
+                SizedBox(width: 8),
+                Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _genderOption(String gender, IconData icon) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedGender = gender;
-        });
-      },
-      child: CircleAvatar(
-        radius: 40,
-        backgroundColor:
-            selectedGender == gender ? Colors.red : Colors.grey[200],
-        child: Icon(
-          icon,
-          color: selectedGender == gender ? Colors.white : Colors.black,
-          size: 40,
+  Widget _buildCircularButton(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
+    return Column(
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(20),
+          ),
+          onPressed: onTap,
+          child: Icon(icon),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(label),
+      ],
     );
-  }
-
-  // Method to open date picker for birthdate
-  void _selectBirthdate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2000, 1, 1),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    setState(() {
-      birthDate = picked;
-    });
-  }
-
-  // Confirm button logic
-  void _confirmProfile() {
-    String firstName = firstNameController.text.trim();
-    String lastName = lastNameController.text.trim();
-    String email = emailController.text.trim();
-    String phone = phoneController.text.trim();
-
-    if (firstName.isEmpty ||
-        lastName.isEmpty ||
-        email.isEmpty ||
-        phone.isEmpty ||
-        selectedGender.isEmpty ||
-        birthDate == null) {
-      // Show an error or a validation message
-      print('Please fill all the fields');
-      return;
-    }
-
-    // You can now use these values to save the user's profile information
-    print(
-        'Profile confirmed: $firstName, $lastName, $email, $phone, $selectedGender, $birthDate');
   }
 }
