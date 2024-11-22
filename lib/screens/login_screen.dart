@@ -1,3 +1,4 @@
+import 'package:alsaif_gallery/screens/forgot_password_screen.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/api/api_service.dart';
 import 'package:alsaif_gallery/screens/profile_screen.dart';
@@ -82,7 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextSpan(
                         text: showLoginForm ? 'Register now' : 'Login',
                         style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            color: const Color.fromARGB(255, 243, 33, 33),
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -122,10 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
         Align(
           alignment: Alignment.centerRight,
           child: GestureDetector(
-            onTap: _forgotPassword,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ForgotPasswordScreen(),
+                ),
+              );
+            },
             child: Text(
               'Forgot Password?',
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Color.fromARGB(255, 199, 18, 5),
+                  fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -147,55 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ],
     );
-  }
-
-  void _forgotPassword() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        TextEditingController emailResetController = TextEditingController();
-        return AlertDialog(
-          title: Text('Forgot Password'),
-          content: TextField(
-            controller: emailResetController,
-            decoration: InputDecoration(labelText: 'Enter your email'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                final String email = emailResetController.text;
-                if (email.isNotEmpty) {
-                  await _sendPasswordReset(email);
-                }
-                Navigator.of(context).pop();
-              },
-              child: Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _sendPasswordReset(String email) async {
-    final String url =
-        'http://alsaifgallery.onrender.com/api/v1/user/sendForgetPasswordCode';
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
-
-      if (response.statusCode == 200) {
-        _showErrorDialog('Password reset link sent. Check your email.');
-      } else {
-        _showErrorDialog('Failed to send reset link. Please try again.');
-      }
-    } catch (e) {
-      _showErrorDialog('An error occurred. Please try again later.');
-    }
   }
 
   Future<void> _login() async {
@@ -233,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final String email = emailController.text;
     final String password = passwordController.text;
     final String userName = userNameController.text;
-    final String customerType = "web";
+    final String customerType = "";
 
     if ([firstName, lastName, phoneNumber, email, password, userName]
         .contains('')) {
@@ -270,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (responseBody['status'] == true) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ProfileScreen()),
+            MaterialPageRoute(builder: (context) => LoginScreen()),
           );
         } else {
           _showErrorDialog(
@@ -282,7 +245,6 @@ class _LoginScreenState extends State<LoginScreen> {
             responseBody['message'] ?? 'Registration failed. Try again.');
       }
     } catch (e) {
-      // Handle network or other errors
       _showErrorDialog('Network error: ${e.toString()}');
     }
   }
@@ -334,6 +296,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildRegistrationForm() {
     return Column(
       children: [
+        TextField(
+          controller: userNameController,
+          decoration: InputDecoration(
+            labelText: 'User Name',
+            labelStyle: TextStyle(color: Colors.grey),
+            filled: true,
+            fillColor: Color.fromARGB(255, 248, 246, 246),
+            border: InputBorder.none,
+          ),
+        ),
+        SizedBox(height: 15),
         TextField(
           controller: firstNameController,
           decoration: InputDecoration(
