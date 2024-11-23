@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:alsaif_gallery/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,13 +33,18 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({
-          'email': widget.email,
+          'email':
+              widget.email, // Ensure this matches the API's expected format
           'code': _codeController.text.trim(),
-          'newPassword': _newPasswordController.text.trim(),
+          'password': _newPasswordController.text.trim(),
         }),
       );
+
+      final responseBody = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -48,11 +54,17 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
           ),
         );
 
-        // Navigate back to the login screen
-        Navigator.pop(context);
+        // Navigate to LoginScreen and clear the stack
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false,
+        );
       } else {
-        final errorMessage =
-            jsonDecode(response.body)['message'] ?? 'An error occurred';
+        // Log the response body for debugging
+        print('Error Response: $responseBody');
+
+        final errorMessage = responseBody['message'] ?? 'An error occurred';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage, style: TextStyle(color: Colors.white)),
@@ -61,6 +73,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
         );
       }
     } catch (e) {
+      print('Exception: $e'); // Log exceptions for debugging
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to reset password. Please try again.'),

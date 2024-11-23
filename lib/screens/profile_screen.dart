@@ -67,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> fetchUserInfo() async {
     try {
       final response = await http.get(
-        Uri.parse('http://alsaifgallery.onrender.com/api/v1/user/getUserInfo'),
+        Uri.parse('https://alsaifgallery.onrender.com/api/v1/user/getUserInfo'),
       );
 
       if (response.statusCode == 200) {
