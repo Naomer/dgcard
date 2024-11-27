@@ -1,11 +1,11 @@
+import 'package:alsaif_gallery/screens/Edit_profile_screen.dart';
 import 'package:alsaif_gallery/screens/account.dart';
+import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:alsaif_gallery/screens/Edit_profile_screen.dart';
-import 'package:alsaif_gallery/screens/favorites_screen.dart';
-import 'package:alsaif_gallery/screens/login_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +54,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isDarkMode = false;
+  bool isNotificationsAllowed = false;
   String firstName = '';
   String lastName = '';
   String email = '';
@@ -61,28 +62,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    fetchUserInfo();
+    _loadUserData();
   }
 
-  Future<void> fetchUserInfo() async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://alsaifgallery.onrender.com/api/v1/user/getUserInfo'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          firstName = data['firstName'] ?? 'No first name';
-          lastName = data['lastName'] ?? 'No last name';
-          email = data['email'] ?? 'No email';
-        });
-      } else {
-        debugPrint('Failed to load user data: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error fetching user info: $e');
-    }
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      firstName = prefs.getString('firstName') ?? 'Guest';
+      lastName = prefs.getString('lastName') ?? '';
+      email = prefs.getString('email') ?? 'Not set';
+    });
   }
 
   void _toggleDarkMode() {
@@ -92,13 +81,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> logout(BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-      (route) => false,
+    bool confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Logout"),
+        content: Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text("Cancel")),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text("Logout")),
+        ],
+      ),
     );
+
+    if (confirm) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => Account()),
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -117,114 +123,202 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(height: 1.0, color: Colors.grey[300]),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Welcome, ',
-                          style: TextStyle(
-                            color: const Color.fromARGB(255, 82, 81, 81),
-                            fontSize: 14,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Container(height: 1.0, color: Colors.grey[300]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Welcome, ',
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 82, 81, 81),
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '$firstName $lastName',
-                          style: TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      email,
-                      style: TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => EditProfileScreen()),
-                    );
-                  },
-                  child: Row(
-                    children: const [
-                      Text(
-                        'Settings  ',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 177, 16, 16),
-                          fontSize: 15,
-                        ),
+                          Text(
+                            '$firstName $lastName',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ],
                       ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        color: Color.fromARGB(255, 165, 35, 25),
-                        size: 16,
+                      const SizedBox(height: 8),
+                      Text(
+                        email,
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildCircularButton(
-                context,
-                icon: Icons.shopping_cart,
-                label: 'Orders',
-                onTap: () {},
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => EditProfileScreen()),
+                      );
+                    },
+                    child: Row(
+                      children: const [
+                        Text(
+                          'Settings ',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 177, 16, 16),
+                            fontSize: 15,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color.fromARGB(255, 165, 35, 25),
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              _buildCircularButton(
-                context,
-                icon: Icons.assignment_return,
-                label: 'Returns',
-                onTap: () {},
-              ),
-              _buildCircularButton(
-                context,
-                icon: Icons.favorite,
-                label: 'Favorites',
-                onTap: () {
-                  Navigator.push(
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildCircularButton(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => FavoritesScreen(
-                              favoriteProducts: [],
-                            )),
-                  );
-                },
+                    icon: Icons.shopping_cart_outlined,
+                    label: 'Orders',
+                    onTap: () {},
+                  ),
+                  _buildCircularButton(
+                    context,
+                    icon: Icons.assignment_return_outlined,
+                    label: 'Returns',
+                    onTap: () {},
+                  ),
+                  _buildCircularButton(
+                    context,
+                    icon: Icons.favorite_border,
+                    label: 'Wishlist',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => FavoritesScreen(
+                                  favoriteProducts: [],
+                                )),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Container(
+                  color: const Color.fromARGB(255, 250, 249, 249),
+                  child: Column(children: [
+                    _buildListTile(
+                      title: 'Saved Address',
+                      onTap: () {},
+                      leading: Icon(
+                          Icons.map), // Add the map icon for this specific item
+                    ),
+                  ])),
+              SizedBox(height: 20),
+              Container(
+                color: const Color.fromARGB(255, 250, 249, 249),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text(
+                        'Allow Notifications',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      trailing: Switch(
+                        value: isNotificationsAllowed,
+                        onChanged: (value) {
+                          setState(() {
+                            isNotificationsAllowed = value;
+                          });
+                        },
+                      ),
+                    ),
+                    _buildListTile(
+                      title: 'Contact Us',
+                      onTap: () {},
+                    ),
+                    _buildListTile(
+                      title: 'Our Story',
+                      onTap: () {},
+                    ),
+                    _buildListTile(
+                      title: 'Loyalty Points Policy',
+                      onTap: () {},
+                    ),
+                    _buildListTile(
+                      title: 'Privacy Policy',
+                      onTap: () {},
+                    ),
+                    _buildListTile(
+                      title: 'Payment Method',
+                      onTap: () {},
+                    ),
+                    _buildListTile(
+                      title: 'Feedback',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        IconButton(
+                          icon: Icon(Icons.facebook, color: Colors.black),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: FaIcon(FontAwesomeIcons.twitter,
+                              color: Colors.black),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: FaIcon(FontAwesomeIcons.instagram,
+                              color: const Color.fromARGB(255, 77, 75, 75)),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    GestureDetector(
+                      onTap: () => logout(context),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.logout, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Center(
+                      child: Text(
+                        '\nDigital Card © 2024 • All rights reserved.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ],
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => logout(context),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.logout, color: Colors.red),
-                SizedBox(width: 8),
-                Text(
-                  'Logout',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -244,8 +338,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Icon(icon),
         ),
         const SizedBox(height: 8),
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12), // Reduce the font size here
+        ),
       ],
+    );
+  }
+
+  Widget _buildListTile(
+      {required String title, required VoidCallback onTap, Widget? leading}) {
+    return ListTile(
+      leading:
+          leading, // This will conditionally display the leading widget (icon)
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 13),
+      ),
+      trailing: Icon(Icons.arrow_forward_ios), // Keep the arrow icon for others
+      onTap: onTap,
     );
   }
 }

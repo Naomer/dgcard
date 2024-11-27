@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:alsaif_gallery/api/api_service.dart';
+import 'package:alsaif_gallery/services/api_service.dart';
 import 'package:alsaif_gallery/models/user.dart';
 
 class UserService extends ApiService {

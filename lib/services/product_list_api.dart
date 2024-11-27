@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:alsaif_gallery/api/product_service.dart';
+import 'package:alsaif_gallery/services/product_service.dart';
 import 'package:alsaif_gallery/models/product.dart';
 
 class ProductListApi {

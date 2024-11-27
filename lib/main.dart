@@ -2,34 +2,20 @@ import 'package:alsaif_gallery/provider/CartProvider.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/language_provider.dart';
 import 'package:alsaif_gallery/screens/login_screen.dart';
+import 'package:alsaif_gallery/screens/account.dart'; // New import
+import 'package:alsaif_gallery/screens/profile_screen.dart'; // New import
 import 'package:alsaif_gallery/splash_screenn.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// void main() {
-//   runApp(
-//     ChangeNotifierProvider(
-//       create: (_) => LanguageProvider(),
-//       child: MyApp(),
-//     ),
-//   );
-// }
-
 void main() {
   runApp(
-    //ChangeNotifierProvider(
-    //create: (_) => CartProvider(),
-    // child: ChangeNotifierProvider(
-    // create: (_) => LanguageProvider(),
-    //create: (BuildContext context) {},
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(
-          create: (_) => LanguageProvider(),
-        )
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
       child: MyApp(),
     ),
@@ -60,9 +46,8 @@ class _MyAppState extends State<MyApp> {
       _isFirstLaunch = !seen;
     });
 
-    // If it's the first launch, show country/language selection, otherwise skip it
+    // Set the flag in SharedPreferences so it doesn't show again
     if (_isFirstLaunch) {
-      // Set the flag in SharedPreferences so that it doesn't show again
       prefs.setBool('seenCountryLanguageSelection', true);
     }
   }
@@ -73,38 +58,54 @@ class _MyAppState extends State<MyApp> {
       builder: (context, languageProvider, child) {
         return MaterialApp(
           title: 'Digital Card',
-          // home: ProductDetailScreen(
-          //   product: {/* some product data */},
-          //   onCompletePurchase: () {},
-          // ),
           debugShowCheckedModeBanner: false,
-          home: SplashScreen(),
+          home: SplashScreen(), // Use AuthCheck to handle login state
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          locale: languageProvider.locale ?? Locale('en', ''),
-          supportedLocales: [
+          locale: languageProvider.locale ?? const Locale('en', ''),
+          supportedLocales: const [
             Locale('en', ''),
             Locale('ar', ''),
           ],
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          // Initial route logic
-          // initialRoute: _isFirstLaunch
-          //     ? '/splash'
-          //     : '/splash', // Only show countryLanguageSelection if first launch
           routes: {
             '/home': (context) => SplashScreen(),
-            // '/login': (context) => LoginScreen(),
-            // '/main': (context) => MainScreen(),
-            // '/countryLanguageSelection': (context) =>
-            //     CountryLanguageSelectionScreen(),
+            '/login': (context) => LoginScreen(),
+            '/profile': (context) => ProfileScreen(),
+            '/account': (context) => Account(),
           },
         );
       },
     );
+  }
+}
+
+class AuthCheck extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasData && snapshot.data!) {
+          return ProfileScreen(); // User is logged in
+        } else {
+          return Account(); // User is not logged in
+        }
+      },
+    );
+  }
+
+  Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false; // Default to false
   }
 }

@@ -1,6 +1,7 @@
 import 'package:alsaif_gallery/provider/CartProvider.dart';
 import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
+import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:alsaif_gallery/screens/account.dart';
 import 'package:alsaif_gallery/screens/cartscreen.dart';
@@ -12,6 +13,7 @@ import 'package:provider/provider.dart';
 
 import 'dart:async';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -84,7 +86,9 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  bool _isLoggedIn = false;
 
+  // Define GlobalKeys for each screen's Navigator
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -93,16 +97,30 @@ class _MainScreenState extends State<MainScreen> {
     GlobalKey<NavigatorState>(),
   ];
 
+  // Define the list of screens
   final List<Widget> _screens = [
     HomeScreen(),
-    CategoryScreen(
-      onProductSelected: (product) {},
-    ),
+    CategoryScreen(onProductSelected: (product) {}),
     CartScreen(cart: [], onStartShoppingPressed: () {}),
     ProductListScreen(),
-    Account(),
+    Account(), // Initially Account, will switch to Profile when logged in
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginState();
+  }
+
+  // Check login state when the app starts
+  Future<void> _checkLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    });
+  }
+
+  // Handle bottom navigation bar tab selection
   void _onTabSelected(int index) {
     if (_selectedIndex == index) {
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
@@ -115,9 +133,11 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Update the list of screens based on the login state
+    _screens[4] = _isLoggedIn ? ProfileScreen() : Account();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: _buildAppBar(),
       body: Stack(
         children: List.generate(
           _screens.length,
@@ -139,11 +159,15 @@ class _MainScreenState extends State<MainScreen> {
         animationDuration: const Duration(milliseconds: 300),
         index: _selectedIndex,
         items: [
-          _buildNavItem(Icons.home_outlined, "     Home     ", 0),
-          _buildNavItem(Icons.format_list_bulleted, " Categories ", 1),
+          _buildNavItem(Icons.home_outlined, "Home", 0),
+          _buildNavItem(Icons.format_list_bulleted, "Categories", 1),
           _buildCartNavItem(),
-          _buildNavItem(Icons.local_offer_outlined, "   Offers   ", 3),
-          _buildNavItem(Icons.account_circle_outlined, "   Account   ", 4),
+          _buildNavItem(Icons.local_offer_outlined, "Offers", 3),
+          _buildNavItem(
+            _isLoggedIn ? Icons.person_outline : Icons.account_circle_outlined,
+            _isLoggedIn ? "Profile" : "Account",
+            4,
+          ),
         ],
         onTap: _onTabSelected,
       ),
@@ -151,9 +175,9 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // Custom widget for creating bottom nav items
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isSelected = _selectedIndex == index;
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -178,10 +202,10 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // Custom widget for Cart navigation item
   Widget _buildCartNavItem() {
-    final cartItemCount = Provider.of<CartProvider>(context).cartItemCount;
+    final cartItemCount = 0; // Replace with actual cart item count
     final isSelected = _selectedIndex == 2;
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -222,7 +246,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             const SizedBox(height: 3),
             Text(
-              "     Cart     ",
+              "Cart",
               style: TextStyle(
                 color: isSelected
                     ? const Color.fromARGB(255, 159, 64, 58)
@@ -235,6 +259,10 @@ class _MainScreenState extends State<MainScreen> {
       ],
     );
   }
+}
+
+
+
 
   // PreferredSizeWidget? _buildAppBar() {
   //   if (_selectedIndex == 0 || _selectedIndex == 1 || _selectedIndex == 3) {
@@ -314,4 +342,3 @@ class _MainScreenState extends State<MainScreen> {
   //   }
   //   return null;
   // }
-}

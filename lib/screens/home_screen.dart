@@ -1,7 +1,7 @@
 import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:alsaif_gallery/api/home_api_service.dart';
+import 'package:alsaif_gallery/services/home_api_service.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
@@ -25,6 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<dynamic> allProducts = [];
   List<dynamic> filteredProducts = [];
+  List<dynamic> subCategoryCovers = [];
+  bool isLoadingSubCategoryCovers = false;
 
   int _selectedIndex = 0;
   int currentIndex = 0;
@@ -43,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     fetchParentCategories();
     fetchAdvertisements();
     fetchAllProducts();
+    fetchSubCategoryCovers();
   }
 
   Future<void> fetchParentCategories() async {
@@ -106,6 +109,24 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         isLoadingSearch = false;
       });
+    }
+  }
+
+  Future<void> fetchSubCategoryCovers() async {
+    setState(() => isLoadingSubCategoryCovers = true);
+    try {
+      final response = await http.get(Uri.parse(
+          'https://alsaifgallery.onrender.com/api/v1/category/getCoverPicturesOfSubCategories/6706c6680d219962bb428b48'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          subCategoryCovers = data['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      // Handle error
+    } finally {
+      setState(() => isLoadingSubCategoryCovers = false);
     }
   }
 
@@ -296,6 +317,8 @@ class _HomeScreenState extends State<HomeScreen> {
             : advertisements.isEmpty
                 ? const Center(child: Text("No advertisements"))
                 : buildAdvertisements(),
+        SizedBox(height: 20),
+        buildSubCategoryCovers(),
       ],
     );
   }
@@ -363,6 +386,83 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
         ),
       ],
+    );
+  }
+
+  Widget buildSubCategoryCovers() {
+    if (isLoadingSubCategoryCovers) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (subCategoryCovers.isEmpty) {
+      return const Center(child: Text("No subcategories available"));
+    }
+
+    return SizedBox(
+      height: 100, // Adjust height as needed
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: subCategoryCovers.length,
+        itemBuilder: (context, index) {
+          final cover = subCategoryCovers[index];
+          final coverImageUrl =
+              cover['coverPic']['data']; // Updated to match API response
+          final subCategoryName =
+              cover['subCategory']['categoryName']; // Extracted name
+
+          return GestureDetector(
+            onTap: () {
+              // Handle subcategory click
+              print("Tapped on $subCategoryName");
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              width: 120, // Adjust width as needed
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+                image: coverImageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(coverImageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+                color: Colors
+                    .grey[200], // Placeholder background for missing image
+              ),
+              child: Stack(
+                children: [
+                  if (coverImageUrl == null)
+                    const Center(
+                      child: Icon(Icons.broken_image,
+                          size: 50, color: Colors.grey),
+                    ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      color: Colors.black.withOpacity(0.6),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4.0, horizontal: 8.0),
+                      child: Text(
+                        subCategoryName,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

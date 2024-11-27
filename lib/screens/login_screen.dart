@@ -1,10 +1,12 @@
 import 'package:alsaif_gallery/screens/forgot_password_screen.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
-import 'package:alsaif_gallery/api/api_service.dart';
+import 'package:alsaif_gallery/services/api_service.dart';
 import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool showSkipButton;
@@ -171,16 +173,35 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      final response = await apiService.post('/api/v1/user/signin',
-          body: jsonEncode({'email': email, 'password': password}));
+      final response = await apiService.post(
+        '/api/v1/user/signin',
+        body: jsonEncode({'email': email, 'password': password}),
+      );
 
       if (response.statusCode == 200) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => ProfileScreen(),
-          ),
-          (route) => false,
-        );
+        // Parse the response
+        final data = jsonDecode(response.body);
+
+        // Check if login was successful
+        if (data['status']) {
+          // Save user details to SharedPreferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', data['data']['token']);
+          await prefs.setString('firstName', data['data']['user']['firstName']);
+          await prefs.setString('lastName', data['data']['user']['lastName']);
+          await prefs.setString('email', data['data']['user']['email']);
+          await prefs.setBool('isLoggedIn', true);
+
+          // Navigate to ProfileScreen
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => ProfileScreen(),
+            ),
+            (route) => false,
+          );
+        } else {
+          _showErrorDialog('Login failed: ${data['message']}');
+        }
       } else {
         _showErrorDialog('Login failed. Please check your credentials.');
       }

@@ -2,7 +2,7 @@ import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:alsaif_gallery/api/product_api.dart';
+import 'package:alsaif_gallery/services/product_api.dart';
 import 'product_detail_screen.dart';
 
 class ProductsScreen extends StatefulWidget {

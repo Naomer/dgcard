@@ -1,17 +1,19 @@
 import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:alsaif_gallery/provider/CartProvider.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
 
-  ProductDetailScreen(
-      {required this.productId,
-      required Map product,
-      required Null Function() onCompletePurchase});
+  ProductDetailScreen({
+    required this.productId,
+    required Map product,
+    required Null Function() onCompletePurchase,
+  });
 
   @override
   _ProductDetailScreenState createState() => _ProductDetailScreenState();
@@ -21,6 +23,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Map<String, dynamic> productData;
   int quantity = 1;
   bool showPopup = false;
+  double _rating = 0.0;
+  TextEditingController _commentController = TextEditingController();
+  String activeSection = 'Description'; // Default section is Description
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -61,6 +67,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         });
       }
     });
+  }
+
+  void submitRating() {
+    if (_rating > 0) {
+      // Handle rating submission (e.g., call an API to submit the rating)
+      print('Rating: $_rating');
+      if (_commentController.text.isNotEmpty) {
+        print('Comment: ${_commentController.text}');
+      }
+    }
   }
 
   @override
@@ -137,168 +153,276 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      'Total product in stock: ${productData['stockQuantity']}',
+                      style:
+                          TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 20),
+                    // Product Image Carousel with arrows
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          height: 200,
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: productData['imageIds'].length,
+                            itemBuilder: (context, index) {
+                              return Image.network(
+                                productData['imageIds'][index],
+                                // fit: BoxFit.cover,
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back_ios_sharp),
+                            onPressed: () {
+                              if (_pageController.page! > 0) {
+                                _pageController.previousPage(
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut);
+                              }
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_forward_ios),
+                            onPressed: () {
+                              if (_pageController.page! <
+                                  productData['imageIds'].length - 1) {
+                                _pageController.nextPage(
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut);
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    // Page indicator
+                    Center(
+                      child: SmoothPageIndicator(
+                        controller: _pageController,
+                        count: productData['imageIds'].length,
+                        effect: WormEffect(
+                          dotColor: Colors.grey,
+                          activeDotColor: Colors.red,
+                          dotHeight: 8,
+                          dotWidth: 8,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Product Name
+                    Text(
                       productData['name'] ?? 'No name',
                       style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 5),
+                    // Rating System
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(5, (index) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _rating = index + 1.0;
+                            });
+                          },
+                          child: Icon(
+                            index < _rating ? Icons.star : Icons.star_border,
+                            color:
+                                index < _rating ? Colors.yellow : Colors.grey,
+                            size: 20,
+                          ),
+                        );
+                      }),
                     ),
                     SizedBox(height: 10),
+                    // Add comment popup
+                    if (_rating > 0)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Add a comment (optional):'),
+                          TextField(
+                            controller: _commentController,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              hintText: 'Your comment...',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _rating = 0.0;
+                                    _commentController.clear();
+                                  });
+                                },
+                                child: Text('Cancel'),
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(color: Colors.grey),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  minimumSize: Size(60, 30),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: submitRating,
+                                child: Text('Submit'),
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 148, 43, 209),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  minimumSize: Size(80, 30),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    SizedBox(height: 10),
+                    // Category or Brand
                     Text(
                       'Category: ${productData['category']['categoryName'] ?? 'No category'}',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                      style: TextStyle(fontSize: 15, color: Colors.grey),
                     ),
                     SizedBox(height: 10),
-                    Text(
-                      productData['description'] ?? 'No description',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10),
+                    // Product Price
                     Text(
                       'Price: \$${productData['price']}',
                       style: TextStyle(fontSize: 20, color: Colors.red),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Stock Quantity: ${productData['stockQuantity']}',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10),
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: productData['imageIds'].length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: Image.network(
-                              productData['imageIds'][index],
-                              fit: BoxFit.cover,
-                            ),
-                          );
-                        },
+
+                    SizedBox(height: 20),
+                    // Add to Cart button
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: addToCart,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          minimumSize:
+                              Size(MediaQuery.of(context).size.width * 0.9, 47),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                        ),
+                        child: Text('ADD TO CART'),
                       ),
                     ),
                     SizedBox(height: 20),
-                    Text(
-                      'Additional Information:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    // Bottom Section (Tapping text switches content)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              activeSection = 'Description';
+                            });
+                          },
+                          child: Text(
+                            'Description',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: activeSection == 'Description'
+                                    ? Colors.red
+                                    : Colors.black),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              activeSection = 'Additional Information';
+                            });
+                          },
+                          child: Text(
+                            'Additional Information',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: activeSection == 'Additional Information'
+                                    ? Colors.red
+                                    : Colors.black),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              activeSection = 'Ratings';
+                            });
+                          },
+                          child: Text(
+                            'Ratings',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: activeSection == 'Ratings'
+                                    ? Colors.red
+                                    : Colors.black),
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 10),
-                    Text('SKU: ${productData['additionalInformation']['SKU']}'),
-                    Text(
-                        'Brand: ${productData['additionalInformation']['brand']}'),
-                    Text(
-                        'Color: ${productData['additionalInformation']['color']}'),
-                    Text(
-                        'Material: ${productData['additionalInformation']['material']}'),
-                    Text(
-                        'Warranty: ${productData['additionalInformation']['warranty']}'),
-                    SizedBox(height: 10),
-                    Text(
-                        'Average Rating: ${productData['ratings']['averageRating']}'),
-                    Text(
-                        'Number of Ratings: ${productData['ratings']['numberOfRatings']}'),
-                    SizedBox(height: 50),
+                    // Displaying the selected section content
+                    if (activeSection == 'Description')
+                      Text(productData['description'] ?? 'No description'),
+                    if (activeSection == 'Additional Information')
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 10),
+                          Text(
+                              'SKU: ${productData['additionalInformation']['SKU']}'),
+                          Text(
+                              'Brand: ${productData['additionalInformation']['brand']}'),
+                          Text(
+                              'Color: ${productData['additionalInformation']['color']}'),
+                          Text(
+                              'Material: ${productData['additionalInformation']['material']}'),
+                          Text(
+                              'Warranty: ${productData['additionalInformation']['warranty']}'),
+                        ],
+                      ),
+                    if (activeSection == 'Ratings')
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ratings: ${productData['ratings']['averageRating']}',
+                          ),
+                          Text(
+                            '${productData['ratings']['numberOfRatings']} Customers Rated this product:',
+                          ),
+                        ],
+                      ),
+                    SizedBox(height: 20),
+                    // Add to Cart button
                   ],
                 ),
               ),
             ),
-      bottomSheet: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 16),
-        child: Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (quantity > 1) quantity--;
-                      });
-                    },
-                    icon: Icon(Icons.remove),
-                  ),
-                  Text('$quantity',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        quantity++;
-                      });
-                    },
-                    icon: Icon(Icons.add),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: addToCart,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 194, 6, 6),
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: Text('Add to Cart',
-                    style: TextStyle(color: Colors.white, fontSize: 12)),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: showPopup
-          ? Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-                child: Center(
-                  child: AlertDialog(
-                    title: const Icon(Icons.check_circle_outline,
-                        color: Colors.green, size: 48),
-                    content: const Text(
-                      'Your choice has been successfully added to the cart.',
-                      textAlign: TextAlign.center,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            showPopup = false;
-                          });
-                        },
-                        style: TextButton.styleFrom(
-                          side: const BorderSide(color: Colors.red),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
-                          ),
-                          minimumSize: Size(150, 60),
-                        ),
-                        child: const Text(
-                          'You see your added items in cart',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                      OutlinedButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Okay',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          : SizedBox.shrink(),
     );
   }
 }
