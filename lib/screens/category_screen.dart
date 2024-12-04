@@ -212,8 +212,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          FavoritesScreen(favoriteProducts: []),
+                      builder: (context) => FavoritesScreen(
+                        token: 'token',
+                      ),
                     ),
                   );
                 },

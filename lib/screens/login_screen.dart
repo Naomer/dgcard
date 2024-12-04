@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -56,17 +57,30 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Divider(height: 0.5, color: Colors.grey[300], thickness: 0.5),
-              SizedBox(height: 50),
-              Text(
-                showLoginForm ? 'Login' : 'Register',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              SizedBox(height: 5),
+              Center(
+                child: Text(
+                  showLoginForm ? 'Login' : 'Register',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
-              SizedBox(height: 15),
+              SizedBox(
+                  height:
+                      10), // Add some space between the title and the subtext
+              Center(
+                child: Text(
+                  showLoginForm
+                      ? 'Login to continue'
+                      : '----- Create an account ------',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ),
+              SizedBox(height: 5),
               showLoginForm ? _buildLoginForm() : _buildRegistrationForm(),
               SizedBox(height: 25),
               GestureDetector(
@@ -80,19 +94,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: showLoginForm
                         ? 'Don\'t have an account? '
                         : 'Already have an account? ',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 138, 138, 138)),
                     children: [
                       TextSpan(
-                        text: showLoginForm ? 'Register now' : 'Login',
+                        text: showLoginForm ? 'REGISTER NOW' : 'LOGIN',
                         style: TextStyle(
-                            fontSize: 16,
-                            color: const Color.fromARGB(255, 243, 33, 33),
-                            fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          color: const Color.fromARGB(255, 70, 69, 69),
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline, // Add underline
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -102,7 +120,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildLoginForm() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'E-Mail Address', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 3), // Space between label and text field
         TextField(
           controller: emailController,
           decoration: InputDecoration(
@@ -114,6 +138,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         SizedBox(height: 15),
+        Text(
+          'Password',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 3),
         _buildPasswordField(
           labelText: 'Password',
           showPassword: showPassword,
@@ -146,9 +175,9 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(height: 20),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromARGB(255, 199, 18, 5),
+            backgroundColor: Color.fromARGB(255, 185, 38, 28),
             padding: EdgeInsets.symmetric(vertical: 12),
-            fixedSize: Size(300, 50),
+            fixedSize: Size(331, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
@@ -157,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
             await _login();
           },
           child: Text('LOGIN',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+              style: TextStyle(color: Colors.white, fontSize: 13)),
         ),
       ],
     );
@@ -316,64 +345,89 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildRegistrationForm() {
     return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start, // Align everything to the left
       children: [
+        // Label for User Name
+        Text(
+          'User Name', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5), // Space between label and text field
         TextField(
           controller: userNameController,
           decoration: InputDecoration(
-            labelText: 'User Name',
-            labelStyle: TextStyle(color: Colors.grey),
             filled: true,
             fillColor: Color.fromARGB(255, 248, 246, 246),
             border: InputBorder.none,
           ),
         ),
-        SizedBox(height: 15),
+        SizedBox(height: 12),
+
+        // Label for First and Last Name
+        Text(
+          'First and Last Name', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5), // Space between label and text field
         TextField(
-          controller: firstNameController,
+          controller: nameController, // Use a single controller for both names
           decoration: InputDecoration(
-            labelText: 'First Name',
-            labelStyle: TextStyle(color: Colors.grey),
             filled: true,
             fillColor: Color.fromARGB(255, 248, 246, 246),
             border: InputBorder.none,
           ),
+          onChanged: (value) {
+            // Split input into first and last name if needed
+            List<String> names = value.split(" ");
+            if (names.length >= 2) {
+              firstNameController.text = names[0]; // First name
+              lastNameController.text = names[1]; // Last name
+            }
+          },
         ),
-        SizedBox(height: 15),
-        TextField(
-          controller: lastNameController,
-          decoration: InputDecoration(
-            labelText: 'Last Name',
-            labelStyle: TextStyle(color: Colors.grey),
-            filled: true,
-            fillColor: Color.fromARGB(255, 248, 246, 246),
-            border: InputBorder.none,
-          ),
+        SizedBox(height: 12),
+
+        // Label for Phone Number
+        Text(
+          'Phone Number', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 15),
+        SizedBox(height: 5), // Space between label and text field
         TextField(
           controller: phoneController,
           decoration: InputDecoration(
-            labelText: 'Phone Number',
-            labelStyle: TextStyle(color: Colors.grey),
             filled: true,
             fillColor: Color.fromARGB(255, 248, 246, 246),
             border: InputBorder.none,
           ),
         ),
-        SizedBox(height: 15),
+        SizedBox(height: 12),
+
+        // Label for Email Address
+        Text(
+          'E-Mail Address', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5), // Space between label and text field
         TextField(
           controller: emailController,
           decoration: InputDecoration(
-            labelText: 'E-Mail Address',
-            labelStyle: TextStyle(color: Colors.grey),
             filled: true,
             fillColor: Color.fromARGB(255, 248, 246, 246),
             border: InputBorder.none,
           ),
         ),
-        SizedBox(height: 15),
+        SizedBox(height: 12),
+
+        // Label for Password
+        Text(
+          'Create a new password', // Description for the field
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 3), // Space between label and text field
         _buildPasswordField(
-          labelText: 'Password',
+          labelText: '',
           showPassword: showPassword,
           onPressed: () {
             setState(() {
@@ -382,11 +436,13 @@ class _LoginScreenState extends State<LoginScreen> {
           },
         ),
         SizedBox(height: 15),
+
+        // Register Button
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromARGB(255, 199, 18, 5),
+            backgroundColor: Color.fromARGB(255, 185, 38, 28),
             padding: EdgeInsets.symmetric(vertical: 12),
-            fixedSize: Size(300, 50),
+            fixedSize: Size(331, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
@@ -395,7 +451,7 @@ class _LoginScreenState extends State<LoginScreen> {
             await _register();
           },
           child: Text('REGISTER',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+              style: TextStyle(color: Colors.white, fontSize: 13)),
         ),
       ],
     );

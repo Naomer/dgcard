@@ -60,9 +60,9 @@ class _SplashScreenState extends State<SplashScreen> {
             // ),
             // SizedBox(height: 20),
             Text(
-              'Digital Card',
+              'DIGITAL CARD',
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -153,19 +153,21 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: const Color.fromARGB(255, 251, 251, 251),
-        color: const Color.fromARGB(255, 243, 241, 241),
-        buttonBackgroundColor: const Color.fromARGB(255, 243, 241, 241),
-        height: 71,
+        color: const Color.fromARGB(255, 236, 236, 236),
+        buttonBackgroundColor: const Color.fromARGB(255, 236, 236, 236),
+        height: 75,
         animationDuration: const Duration(milliseconds: 300),
         index: _selectedIndex,
         items: [
-          _buildNavItem(Icons.home_outlined, "Home", 0),
-          _buildNavItem(Icons.format_list_bulleted, "Categories", 1),
+          _buildNavItem(Icons.home_filled, "   Home   ", 0),
+          _buildNavItem(Icons.format_list_bulleted, " Categories ", 1),
           _buildCartNavItem(),
-          _buildNavItem(Icons.local_offer_outlined, "Offers", 3),
+          _buildNavItem(Icons.local_offer_outlined, "   Offers   ", 3),
           _buildNavItem(
-            _isLoggedIn ? Icons.person_outline : Icons.account_circle_outlined,
-            _isLoggedIn ? "Profile" : "Account",
+            _isLoggedIn
+                ? Icons.account_circle_sharp
+                : Icons.account_circle_outlined,
+            _isLoggedIn ? "   Account   " : "   Account   ",
             4,
           ),
         ],
@@ -178,24 +180,34 @@ class _MainScreenState extends State<MainScreen> {
   // Custom widget for creating bottom nav items
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isSelected = _selectedIndex == index;
+
+    // Use a larger size only for the Home icon (index 0)
+    final iconSize = index == 0
+        ? 25.0 // Larger size for Home (index 0)
+        : index == 1
+            ? 26.0 // Slightly smaller size for Categories (index 1)
+            : 25.0; //
+
+    final spacing = index == 1 ? 5.0 : 4.0;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           icon,
-          size: 23,
+          size: iconSize,
           color: isSelected
-              ? const Color.fromARGB(255, 159, 64, 58)
+              ? const Color.fromARGB(255, 179, 37, 27)
               : const Color.fromARGB(255, 69, 69, 69),
         ),
-        const SizedBox(height: 3),
+        SizedBox(height: spacing),
         Text(
           label,
           style: TextStyle(
             color: isSelected
-                ? const Color.fromARGB(255, 159, 64, 58)
-                : const Color.fromARGB(255, 131, 128, 128),
-            fontSize: 8,
+                ? const Color.fromARGB(255, 196, 53, 43)
+                : const Color.fromARGB(255, 109, 109, 109),
+            fontSize: 9,
           ),
         ),
       ],
@@ -219,7 +231,7 @@ class _MainScreenState extends State<MainScreen> {
                   Icons.shopping_cart_outlined,
                   size: 26,
                   color: isSelected
-                      ? const Color.fromARGB(255, 159, 64, 58)
+                      ? const Color.fromARGB(255, 196, 58, 49)
                       : const Color.fromARGB(255, 69, 69, 69),
                 ),
                 if (cartItemCount > 0)
@@ -229,7 +241,7 @@ class _MainScreenState extends State<MainScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 192, 58, 48),
+                        color: const Color.fromARGB(255, 197, 43, 32),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -244,14 +256,14 @@ class _MainScreenState extends State<MainScreen> {
                   ),
               ],
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
-              "Cart",
+              "    Cart     ",
               style: TextStyle(
                 color: isSelected
-                    ? const Color.fromARGB(255, 159, 64, 58)
-                    : const Color.fromARGB(255, 131, 128, 128),
-                fontSize: 8,
+                    ? const Color.fromARGB(255, 175, 43, 34)
+                    : const Color.fromARGB(255, 83, 83, 83),
+                fontSize: 9,
               ),
             ),
           ],
@@ -260,85 +272,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
-
-
-
-  // PreferredSizeWidget? _buildAppBar() {
-  //   if (_selectedIndex == 0 || _selectedIndex == 1 || _selectedIndex == 3) {
-  //     return AppBar(
-  //       backgroundColor: Colors.white,
-  //       title: Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //         children: [
-  //           Image.asset(
-  //             'assets/loggo.png',
-  //             height: 33,
-  //           ),
-  //           Expanded(
-  //             child: Padding(
-  //               padding: const EdgeInsets.symmetric(horizontal: 2.0),
-  //               child: GestureDetector(
-  //                 onTap: () {
-  //                   // Navigate to the search screen when the search box is tapped
-  //                   Navigator.push(
-  //                     context,
-  //                     PageRouteBuilder(
-  //                       pageBuilder: (context, animation, secondaryAnimation) =>
-  //                           SearchScreen(),
-  //                       transitionsBuilder:
-  //                           (context, animation, secondaryAnimation, child) {
-  //                         return FadeTransition(
-  //                             opacity: animation, child: child);
-  //                       },
-  //                     ),
-  //                   );
-  //                 },
-  //                 child: SizedBox(
-  //                   height: 35.0,
-  //                   child: TextField(
-  //                     enabled:
-  //                         false, // Disable editing, only for tapping to navigate
-  //                     decoration: InputDecoration(
-  //                       hintText: 'Find it here...',
-  //                       hintStyle: TextStyle(
-  //                         fontSize: 13.0,
-  //                         color: Colors.grey[600],
-  //                       ),
-  //                       border: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(4.0),
-  //                         borderSide: BorderSide.none,
-  //                       ),
-  //                       filled: true,
-  //                       fillColor: Colors.grey[200],
-  //                       contentPadding: const EdgeInsets.symmetric(
-  //                         vertical: 16.0,
-  //                         horizontal: 14.0,
-  //                       ),
-  //                       suffixIcon: Icon(
-  //                         Icons.search,
-  //                         color: Colors.grey[600],
-  //                         size: 20.0,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //           IconButton(
-  //             icon: const Icon(Icons.favorite_border, color: Colors.black),
-  //             onPressed: () {
-  //               Navigator.of(context).push(
-  //                 MaterialPageRoute(
-  //                   builder: (context) => FavoritesScreen(favoriteProducts: []),
-  //                 ),
-  //               );
-  //             },
-  //           ),
-  //         ],
-  //       ),
-  //     );
-  //   }
-  //   return null;
-  // }

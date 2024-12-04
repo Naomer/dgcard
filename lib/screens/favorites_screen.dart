@@ -1,27 +1,117 @@
+import 'package:alsaif_gallery/provider/AuthProvider.dart';
+import 'package:alsaif_gallery/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AuthCheck extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData && snapshot.data!) {
+          return FutureBuilder<String?>(
+            future: getToken(),
+            builder: (context, tokenSnapshot) {
+              if (tokenSnapshot.hasData && tokenSnapshot.data != null) {
+                return FavoritesScreen(token: tokenSnapshot.data!);
+              } else {
+                return const Center(
+                    child: Text("Error: Unable to fetch token"));
+              }
+            },
+          );
+        } else {
+          return const LoginScreen(); // Redirect to login screen
+        }
+      },
+    );
+  }
+
+  Future<bool> isLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
+  }
+
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+}
+
+Future<Map<String, dynamic>> getAuthData() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  final token = prefs.getString('token');
+  print("isLoggedIn: $isLoggedIn, token: $token"); // Debug log
+  return {'isLoggedIn': isLoggedIn, 'token': token};
+}
 
 class FavoritesScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> favoriteProducts;
+  final String token;
 
-  const FavoritesScreen({super.key, required this.favoriteProducts});
+  const FavoritesScreen({Key? key, required this.token}) : super(key: key);
 
   @override
-  _FavoritesScreenState createState() => _FavoritesScreenState();
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  List<Map<String, dynamic>> cartItems = [];
+  List<Map<String, dynamic>> favoriteProducts = [];
+  bool isLoading = false;
+  String? errorMessage;
 
-  void moveToCart(Map<String, dynamic> product) {
+  Future<void> _fetchFavoriteProducts(String token) async {
     setState(() {
-      widget.favoriteProducts.remove(product);
-      cartItems.add(product);
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://alsaifgallery.onrender.com/api/v1/user/getFavoriteProducts'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      print("HTTP Status Code: ${response.statusCode}");
+      print("HTTP Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final products = data['products'];
+        if (products != null && products is List) {
+          setState(() {
+            favoriteProducts = List<Map<String, dynamic>>.from(products);
+          });
+        } else {
+          setState(() {
+            errorMessage = 'No products found.';
+          });
+        }
+      }
+    } catch (error) {
+      print("Error during fetch: $error");
+      setState(() {
+        errorMessage = 'Error: ${error.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
-  void removeFromFavorites(Map<String, dynamic> product) {
-    setState(() {
-      widget.favoriteProducts.remove(product);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchFavoriteProducts(widget.token);
     });
   }
 
@@ -37,141 +127,86 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
+      body: widget.token == null
+          ? _buildLoggedOutView()
+          : isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null
+                  ? Center(child: Text(errorMessage!))
+                  : _buildFavoriteProductsView(),
+    );
+  }
+
+  Widget _buildLoggedOutView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            height: 1.0,
-            color: Colors.grey[300],
-            child: Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
+          Image.asset(
+            'assets/favo.png',
+            height: 240,
+            width: 800,
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Choose your favorite products to buy later.',
+            style: TextStyle(fontSize: 13, color: Colors.black),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 167, 15, 4),
+              padding: const EdgeInsets.symmetric(horizontal: 90, vertical: 13),
+              textStyle: const TextStyle(fontSize: 16),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
               ),
             ),
-          ),
-          Expanded(
-            child: widget.favoriteProducts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/favo.png',
-                          height: 240,
-                          width: 800,
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Choose your favorite products you like now to buy them later whenever you want',
-                          style: TextStyle(fontSize: 13, color: Colors.black),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 167, 15, 4),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 90, vertical: 13),
-                            textStyle: const TextStyle(fontSize: 16),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                          ),
-                          child: const Text(
-                            'Start Shopping',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: widget.favoriteProducts.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(widget.favoriteProducts[index]['name']),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                'Price: \$${widget.favoriteProducts[index]['price']}'),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 163, 22, 12),
-                              ),
-                              child: const Text(
-                                'Move to Cart',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        leading: Image.network(
-                          widget.favoriteProducts[index]['imageIds'][0],
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: Color.fromARGB(255, 128, 126, 126)),
-                          onPressed: () {
-                            removeFromFavorites(widget.favoriteProducts[index]);
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          if (cartItems.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Products in Cart',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Column(
-                    children: cartItems.map((cartItem) {
-                      return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          title: Text(cartItem['name']),
-                          subtitle: Text('Price: \$${cartItem['price']}'),
-                          leading: Image.network(
-                            cartItem['imageIds'][0],
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+            child: const Text(
+              'Start Shopping',
+              style: TextStyle(color: Colors.white),
             ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFavoriteProductsView() {
+    print("Favorite products count: ${favoriteProducts.length}");
+    if (favoriteProducts.isEmpty) {
+      return const Center(child: Text('No favorite products found.'));
+    }
+
+    return ListView.builder(
+      itemCount: favoriteProducts.length,
+      itemBuilder: (context, index) {
+        final product = favoriteProducts[index];
+        return ListTile(
+          leading: Image.network(
+            product['imageUrl'] ?? '',
+            height: 50,
+            width: 50,
+            fit: BoxFit.cover,
+          ),
+          title: Text(product['name'] ?? 'Unknown Product'),
+          subtitle: Text(product['price'] != null
+              ? '\$${product['price']}'
+              : 'Price unavailable'),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              setState(() {
+                favoriteProducts.removeAt(index);
+              });
+            },
+          ),
+        );
+      },
     );
   }
 }

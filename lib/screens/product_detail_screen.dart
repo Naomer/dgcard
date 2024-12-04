@@ -136,7 +136,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(favoriteProducts: []),
+                    builder: (context) => FavoritesScreen(
+                      token: 'token',
+                    ),
                   ),
                 );
               },
@@ -163,42 +165,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       alignment: Alignment.center,
                       children: [
                         SizedBox(
-                          height: 200,
+                          height: 250,
                           child: PageView.builder(
                             controller: _pageController,
                             itemCount: productData['imageIds'].length,
                             itemBuilder: (context, index) {
                               return Image.network(
                                 productData['imageIds'][index],
-                                // fit: BoxFit.cover,
+                                fit: BoxFit.cover,
                               );
-                            },
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          child: IconButton(
-                            icon: Icon(Icons.arrow_back_ios_sharp),
-                            onPressed: () {
-                              if (_pageController.page! > 0) {
-                                _pageController.previousPage(
-                                    duration: Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut);
-                              }
-                            },
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          child: IconButton(
-                            icon: Icon(Icons.arrow_forward_ios),
-                            onPressed: () {
-                              if (_pageController.page! <
-                                  productData['imageIds'].length - 1) {
-                                _pageController.nextPage(
-                                    duration: Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut);
-                              }
                             },
                           ),
                         ),
@@ -400,21 +375,104 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           Text(
                               'Color: ${productData['additionalInformation']['color']}'),
                           Text(
+                              'Size: ${productData['additionalInformation']['size']}'),
+                          Text(
                               'Material: ${productData['additionalInformation']['material']}'),
                           Text(
                               'Warranty: ${productData['additionalInformation']['warranty']}'),
+                          Text(
+                              'Return Policy: ${productData['additionalInformation']['returnPolicy']}'),
                         ],
                       ),
                     if (activeSection == 'Ratings')
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Ratings: ${productData['ratings']['averageRating']}',
+                          // Display the average rating with stars
+                          Row(
+                            children: [
+                              // Single yellow star icon
+                              Icon(
+                                Icons.star,
+                                color: const Color.fromARGB(255, 243, 219, 5),
+                                size: 16,
+                              ),
+                              SizedBox(
+                                  width:
+                                      4), // Spacing between the star and text
+                              // Display the formatted rating and the number of ratings
+                              Text(
+                                ' ${productData['ratings']?['averageRating']?.toStringAsFixed(2) ?? '0.00'}'
+                                '${(productData['ratings']?['numberOfRatings'] ?? 0) > 1000 ? ' (1000+)' : ''}', // Conditional "(1000+)"
+                                style:
+                                    TextStyle(fontSize: 16), // Optional styling
+                              ),
+                            ],
                           ),
+
+                          SizedBox(height: 8),
+
+                          // Display the number of ratings
                           Text(
-                            '${productData['ratings']['numberOfRatings']} Customers Rated this product:',
+                            '${productData['ratings']?['numberOfRatings'] ?? 0} Customers Rated this product.',
+                            style: TextStyle(fontSize: 12),
                           ),
+                          SizedBox(height: 10),
+                          // Display individual user ratings
+                          if (productData['ratings']?['ratingsByUser'] != null)
+                            ...productData['ratings']['ratingsByUser']
+                                .map<Widget>((ratingData) {
+                              final userId = ratingData['userId'];
+                              final lastName = userId?['lastName'] ?? 'Unknown';
+                              final anonymizedLastName =
+                                  '${lastName[0]}***${lastName[lastName.length - 1]}';
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      // Display anonymized name
+                                      Text(
+                                        anonymizedLastName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      // Display user rating with stars
+                                      ...List.generate(5, (index) {
+                                        return Icon(
+                                          index < (ratingData['rating'] ?? 0)
+                                              ? Icons.star
+                                              : Icons.star_border,
+                                          color: const Color.fromARGB(
+                                              255, 243, 219, 5),
+                                          size: 16,
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                  // Display user comment
+                                  Text(
+                                    ratingData['comment'] ??
+                                        'No comment provided',
+                                    style: TextStyle(
+                                      fontSize:
+                                          12, // Adjust the font size to your preference
+                                    ),
+                                  ),
+                                  SizedBox(height: 12),
+                                  Divider(
+                                    color: Colors.grey, // Color of the line
+                                    thickness: 0.5, // Thickness of the line
+                                    height:
+                                        16, // Space above and below the line
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                         ],
                       ),
                     SizedBox(height: 20),

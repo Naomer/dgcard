@@ -1,4 +1,5 @@
 import 'package:alsaif_gallery/provider/CartProvider.dart';
+import 'package:alsaif_gallery/provider/AuthProvider.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/language_provider.dart';
 import 'package:alsaif_gallery/screens/login_screen.dart';
@@ -16,6 +17,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
       ],
       child: MyApp(),
     ),

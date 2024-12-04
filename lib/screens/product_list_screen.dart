@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:alsaif_gallery/provider/AuthProvider.dart';
 import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
@@ -213,7 +214,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(favoriteProducts: []),
+                    builder: (context) => FavoritesScreen(
+                      token: 'token',
+                    ),
                   ),
                 );
               },
@@ -394,3 +397,46 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 }
+
+// class ProductCard extends StatelessWidget {
+//   final int productId;
+
+//   ProductCard({required this.productId});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final AuthProvider = Provider.of<AuthProvider>(context);
+//     final Favoritesprovider = provider.of<Favoritesprovider>(context);
+
+//     final isFavorite = favoriteProvider.favoriteProductIds.contains(productId);
+
+//     return GestureDetector(
+//       onTap: () {
+//         if (!authProvider.isLoggedIn) {
+//           Navigator.pushNamed(context, '/Login');
+//         } else {
+//           if (isFavorite) {
+//             favoriteProvider.removeFromFavorites(productId);
+//             _removeFavoriteProduct(productId);
+//           } else {
+//             favoriteprovider.addFavorite(productId);
+//             _saveFavoriteProduct(productId);
+//           }
+//         }
+//       },
+//       child: Icon(
+//         isFavorite ? Icons.favorite : Icons.favorite_border,
+//         size: 32.0,
+//         color: isFavorite ? Colors.red : Colors.grey,
+//       ),
+//     );
+//   }
+
+//   void _saveFavoriteProduct(int productId) {
+//     // Save favorite product to local storage
+//   }
+
+//   void _removeFavoriteProduct(int productId) {
+//     // Remove favorite product from local storage
+//   }
+// }

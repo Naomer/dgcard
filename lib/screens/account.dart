@@ -1,6 +1,7 @@
 import 'package:alsaif_gallery/screens/About/privacy.dart';
 import 'package:alsaif_gallery/screens/login_screen.dart';
 import 'package:alsaif_gallery/language_provider.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -25,7 +26,7 @@ class _AccountState extends State<Account> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Image.asset('assets/favlog.png', height: 110),
+        title: Image.asset('assets/favlog.png', height: 115),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -44,9 +45,9 @@ class _AccountState extends State<Account> {
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 199, 18, 5),
+                      backgroundColor: const Color.fromARGB(255, 185, 38, 28),
                       padding:
-                          EdgeInsets.symmetric(vertical: 11, horizontal: 140),
+                          EdgeInsets.symmetric(vertical: 13, horizontal: 133),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
                       ),
@@ -57,12 +58,25 @@ class _AccountState extends State<Account> {
                         MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
                     },
-                    child: Text(
-                      languageProvider.isArabic ? 'دخول' : 'Login',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    child: Row(
+                      mainAxisSize:
+                          MainAxisSize.min, // Adjust size to fit content
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          languageProvider.isArabic ? 'دخول' : 'Login',
+                          style: TextStyle(color: Colors.white, fontSize: 14),
+                        ),
+                        SizedBox(width: 5), // Space between text and icon
+                        Icon(
+                          Icons.login, // Add login icon here
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   Align(
                     alignment: Alignment.center,
                     child: RichText(
@@ -77,95 +91,110 @@ class _AccountState extends State<Account> {
                                 ? 'سجل الآن'
                                 : 'Register now',
                             style: TextStyle(color: Colors.red),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginScreen()),
+                                );
+                              },
                           ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: 20),
-              Container(
-                color: const Color.fromARGB(255, 250, 249, 249),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(languageProvider.isArabic
-                          ? 'Change to English'
-                          : 'تغيير الى العربية'),
-                      trailing: Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        languageProvider.toggleLanguage();
-                      },
+                  SizedBox(height: 20),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 250, 249, 249),
+                      borderRadius: BorderRadius.circular(
+                          8.0), // Add slight curve to the border
                     ),
-                    _buildListTile(
-                      title: 'Contact Us',
-                      onTap: () {},
-                    ),
-                    _buildListTile(
-                      title: 'Our Story',
-                      onTap: () {},
-                    ),
-                    _buildListTile(
-                      title: 'Privacy Policy',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PrivacyPage()),
-                        );
-                      },
-                    ),
-                    _buildListTile(
-                      title: 'Payment Method',
-                      onTap: () {},
-                    ),
-                    // _buildListTile(
-                    //   title: 'Feedback',
-                    //   onTap: () {},
-                    // ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.facebook, color: Colors.black),
-                          onPressed: () {},
+                    child: Column(
+                      children: [
+                        ListTile(
+                          title: Text(languageProvider.isArabic
+                              ? 'Change to English'
+                              : 'تغير الى العربية'),
+                          trailing: Icon(Icons.arrow_forward_ios),
+                          onTap: () {
+                            languageProvider.toggleLanguage();
+                          },
                         ),
-                        IconButton(
-                          icon: FaIcon(FontAwesomeIcons.twitter,
-                              color: Colors.black),
-                          onPressed: () {},
+                        _buildListTile(
+                          title: 'Contact Us',
+                          onTap: () {},
                         ),
-                        IconButton(
-                          icon: FaIcon(FontAwesomeIcons.instagram,
-                              color: const Color.fromARGB(255, 77, 75, 75)),
-                          onPressed: () {},
+                        _buildListTile(
+                          title: 'Our Story',
+                          onTap: () {},
                         ),
+                        _buildListTile(
+                          title: 'Privacy Policy',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => PrivacyPage()),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          title: 'Payment Method',
+                          onTap: () {},
+                        ),
+                        // _buildListTile(
+                        //   title: 'Feedback',
+                        //   onTap: () {},
+                        // ),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            IconButton(
+                              icon: Icon(Icons.facebook, color: Colors.black),
+                              onPressed: () {},
+                            ),
+                            SizedBox(width: 46), // Add spacing between icons
+                            IconButton(
+                              icon: FaIcon(FontAwesomeIcons.twitter,
+                                  color: Colors.black),
+                              onPressed: () {},
+                            ),
+                            SizedBox(width: 46), // Add spacing between icons
+                            IconButton(
+                              icon: FaIcon(FontAwesomeIcons.instagram,
+                                  color: const Color.fromARGB(255, 77, 75, 75)),
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 25),
+                        Text(
+                          '• Shipping and delivery information     '
+                          '• How to buy\n'
+                          '\n'
+                          '• Terms and conditions                          '
+                          '• FAQs\n'
+                          '\n'
+                          '• Return policy'
+                          '• Warranty',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        SizedBox(height: 10),
+                        Center(
+                          child: Text(
+                            '\nDigital Card © 2024 • All rights reserved.',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        SizedBox(height: 20),
                       ],
                     ),
-                    SizedBox(height: 25),
-                    Text(
-                      '• Shipping and delivery information     '
-                      '• How to buy\n'
-                      '\n'
-                      '• Terms and conditions                          '
-                      '• FAQs\n'
-                      '\n'
-                      '• Return policy'
-                      '• Warranty',
-                      style: TextStyle(fontSize: 11),
-                    ),
-                    SizedBox(height: 10),
-                    Center(
-                      child: Text(
-                        '\nDigital Card © 2024 • All rights reserved.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

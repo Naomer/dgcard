@@ -5,6 +5,7 @@ import 'package:alsaif_gallery/services/home_api_service.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -116,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isLoadingSubCategoryCovers = true);
     try {
       final response = await http.get(Uri.parse(
-          'https://alsaifgallery.onrender.com/api/v1/category/getCoverPicturesOfSubCategories/6706c6680d219962bb428b48'));
+          'https://alsaifgallery.onrender.com/api/v1/category/getCoverPicturesOfSubCategories/'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -127,6 +128,20 @@ class _HomeScreenState extends State<HomeScreen> {
       // Handle error
     } finally {
       setState(() => isLoadingSubCategoryCovers = false);
+    }
+  }
+
+  Future<void> navigateToFavorites(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => FavoritesScreen(token: token)),
+      );
+    } else {
+      print("Error: Token is null.");
     }
   }
 
@@ -151,140 +166,152 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset('assets/loggo.png', height: 33),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            SearchScreen(),
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                          return FadeTransition(
-                              opacity: animation, child: child);
-                        },
-                      ),
-                    );
-                  },
-                  child: SizedBox(
-                    height: 35.0,
-                    child: TextField(
-                      enabled: false, // Disable editing
-                      decoration: InputDecoration(
-                        hintText: 'Find it here...',
-                        hintStyle:
-                            TextStyle(fontSize: 13.0, color: Colors.grey[600]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4.0),
-                          borderSide: BorderSide.none,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          titleSpacing: 0, // Ensures the title starts at the left edge
+          title: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 8.0), // Adjust this for minimal space
+                child: Image.asset('assets/loggo.png', height: 36),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  SearchScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
                         ),
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 14.0),
-                        suffixIcon: Icon(Icons.search,
-                            color: Colors.grey[600], size: 20.0),
+                      );
+                    },
+                    child: SizedBox(
+                      height: 35.0,
+                      child: TextField(
+                        enabled: false, // Disable editing
+                        decoration: InputDecoration(
+                          hintText: 'Find it here...',
+                          hintStyle: TextStyle(
+                              fontSize: 13.0, color: Colors.grey[600]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 245, 244, 244),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 16.0, horizontal: 14.0),
+                          suffixIcon: Icon(Icons.search,
+                              color: Colors.grey[600], size: 20.0),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.favorite_border, color: Colors.black),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(favoriteProducts: []),
-                  ),
-                );
-              },
+            ],
+          ),
+          actions: [
+            Padding(
+              padding:
+                  const EdgeInsets.only(right: 1.0), // Fine-tune this if needed
+              child: IconButton(
+                icon: const Icon(Icons.favorite_border,
+                    color: Color.fromARGB(255, 107, 106, 106)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => FavoritesScreen(
+                              token: 'token',
+                            )),
+                  );
+                },
+              ),
             ),
           ],
         ),
-      ),
-      body: _selectedIndex == 0
-          ? Column(
-              children: [
-                Container(height: 1.0, color: Colors.grey[300]),
-                searchQuery.isNotEmpty
-                    ? isLoadingSearch
-                        ? const Center(child: CircularProgressIndicator())
-                        : filteredProducts.isEmpty
-                            ? const Center(child: Text("No products found"))
-                            : ListView.builder(
-                                itemCount: filteredProducts.length,
-                                itemBuilder: (context, index) {
-                                  final product = filteredProducts[index];
-                                  return ListTile(
-                                    title: Text(
-                                        product['name'] ?? 'Unnamed Product'),
-                                    onTap: () {},
-                                  );
-                                },
-                              )
-                    : buildCategoriesAndAds(),
-              ],
-            )
-          : Container(),
-    );
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              toolbarHeight:
+                  34, // Set the height of the AppBar that contains the ListView
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  height: 34,
+                  color: Colors.white,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: parentCategories.length,
+                    itemBuilder: (context, index) {
+                      final categoryName = parentCategories[index];
+                      return Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedParentCategory = categoryName;
+                              });
+                            },
+                            child: Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: selectedParentCategory ==
+                                            categoryName
+                                        ? const Color.fromARGB(255, 187, 26, 14)
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: Text(categoryName,
+                                  style: const TextStyle(fontSize: 11)),
+                            ),
+                          ),
+                          if (index < parentCategories.length - 1)
+                            VerticalDivider(
+                                color: Colors.grey[300],
+                                width: 1,
+                                thickness: 1),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return buildCategoriesAndAds();
+                },
+                childCount: 1,
+              ),
+            ),
+          ],
+        ));
   }
 
   Widget buildCategoriesAndAds() {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(8.0),
-          height: 46,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: parentCategories.length,
-            itemBuilder: (context, index) {
-              final categoryName = parentCategories[index];
-              return Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedParentCategory = categoryName;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        border: Border(
-                          bottom: BorderSide(
-                            color: selectedParentCategory == categoryName
-                                ? Colors.red
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: Text(categoryName,
-                          style: const TextStyle(fontSize: 11)),
-                    ),
-                  ),
-                  if (index < parentCategories.length - 1)
-                    VerticalDivider(
-                        color: Colors.grey[300], width: 1, thickness: 1),
-                ],
-              );
-            },
-          ),
-        ),
         if (selectedParentCategory != null &&
             selectedParentCategory == parentCategories.first) ...[
           CarouselSlider(
@@ -398,10 +425,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Center(child: Text("No subcategories available"));
     }
 
-    return SizedBox(
-      height: 100, // Adjust height as needed
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 8.0), // Add padding to screen edges
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics:
+            const NeverScrollableScrollPhysics(), // Prevents scrolling if nested
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Two items per row
+          mainAxisSpacing: 5.0, // Spacing between rows
+          crossAxisSpacing: 5.0, // Spacing between columns
+          childAspectRatio: 5 / 6, // Adjusted aspect ratio (wider boxes)
+        ),
         itemCount: subCategoryCovers.length,
         itemBuilder: (context, index) {
           final cover = subCategoryCovers[index];
@@ -416,14 +452,12 @@ class _HomeScreenState extends State<HomeScreen> {
               print("Tapped on $subCategoryName");
             },
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8.0),
-              width: 120, // Adjust width as needed
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(0.0), // Add rounded corners
                 image: coverImageUrl != null
                     ? DecorationImage(
                         image: NetworkImage(coverImageUrl),
-                        fit: BoxFit.cover,
+                        fit: BoxFit.cover, // Ensures image fits within box
                       )
                     : null,
                 color: Colors
@@ -436,27 +470,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Icon(Icons.broken_image,
                           size: 50, color: Colors.grey),
                     ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      color: Colors.black.withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 4.0, horizontal: 8.0),
-                      child: Text(
-                        subCategoryName,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

@@ -109,7 +109,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(favoriteProducts: []),
+                    builder: (context) => FavoritesScreen(
+                      token: 'token',
+                    ),
                   ),
                 );
               },
