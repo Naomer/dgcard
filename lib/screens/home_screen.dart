@@ -131,20 +131,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> navigateToFavorites(BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    if (token != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => FavoritesScreen(token: token)),
-      );
-    } else {
-      print("Error: Token is null.");
-    }
-  }
-
   void filterProducts(String query) {
     setState(() {
       searchQuery = query;
@@ -232,10 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => FavoritesScreen(
-                              token: 'token',
-                            )),
+                    MaterialPageRoute(builder: (context) => FavoritesScreen()),
                   );
                 },
               ),

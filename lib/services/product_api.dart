@@ -4,7 +4,8 @@ class ProductApi {
   final String baseUrl = 'https://alsaifgallery.onrender.com';
 
   Future<http.Response> get(String endpoint,
-      {Map<String, String>? headers}) async {
+      {Map<String, String>? headers,
+      required Map<String, String> queryParameters}) async {
     return await http.get(Uri.parse('$baseUrl$endpoint'), headers: headers);
   }
 

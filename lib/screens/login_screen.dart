@@ -1,11 +1,9 @@
 import 'package:alsaif_gallery/screens/forgot_password_screen.dart';
+import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/services/api_service.dart';
-import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -56,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SingleChildScrollView(
         child: Container(
-          color: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,9 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
-              SizedBox(
-                  height:
-                      10), // Add some space between the title and the subtext
+              SizedBox(height: 10),
               Center(
                 child: Text(
                   showLoginForm
@@ -103,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 16,
                           color: const Color.fromARGB(255, 70, 69, 69),
                           fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline, // Add underline
+                          decoration: TextDecoration.underline,
                         ),
                       ),
                     ],
@@ -123,10 +118,10 @@ class _LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'E-Mail Address', // Description for the field
+          'E-Mail Address',
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 3), // Space between label and text field
+        SizedBox(height: 3),
         TextField(
           controller: emailController,
           decoration: InputDecoration(
@@ -159,9 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ForgotPasswordScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
               );
             },
             child: Text(
@@ -208,12 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Parse the response
         final data = jsonDecode(response.body);
-
-        // Check if login was successful
         if (data['status']) {
-          // Save user details to SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['data']['token']);
           await prefs.setString('firstName', data['data']['user']['firstName']);
@@ -221,11 +210,8 @@ class _LoginScreenState extends State<LoginScreen> {
           await prefs.setString('email', data['data']['user']['email']);
           await prefs.setBool('isLoggedIn', true);
 
-          // Navigate to ProfileScreen
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => ProfileScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
             (route) => false,
           );
         } else {
@@ -246,15 +232,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final String email = emailController.text;
     final String password = passwordController.text;
     final String userName = userNameController.text;
-    final String customerType = "";
 
     if ([firstName, lastName, phoneNumber, email, password, userName]
         .contains('')) {
       _showErrorDialog("Please fill out all fields.");
-      return;
-    }
-    if (selectedCountry.isEmpty) {
-      _showErrorDialog("Please select a country.");
       return;
     }
 
@@ -265,7 +246,6 @@ class _LoginScreenState extends State<LoginScreen> {
       'email': email,
       'mobile': phoneNumber,
       'password': password,
-      'customerType': customerType,
       'country': selectedCountry,
     };
 
@@ -274,9 +254,6 @@ class _LoginScreenState extends State<LoginScreen> {
         '/api/v1/user/register',
         body: jsonEncode(registrationData),
       );
-
-      print("Registration Response Status: ${response.statusCode}");
-      print("Registration Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
@@ -305,9 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required VoidCallback onPressed,
   }) {
     return TextField(
-      controller: labelText == 'Password'
-          ? passwordController
-          : TextEditingController(),
+      controller: passwordController,
       obscureText: !showPassword,
       decoration: InputDecoration(
         labelText: labelText,
@@ -316,8 +291,11 @@ class _LoginScreenState extends State<LoginScreen> {
         fillColor: Color.fromARGB(255, 248, 246, 246),
         border: InputBorder.none,
         suffixIcon: IconButton(
-          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
           onPressed: onPressed,
+          icon: Icon(
+            showPassword ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
         ),
       ),
     );
@@ -330,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return AlertDialog(
           title: Text('Error'),
           content: Text(message),
-          actions: [
+          actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();

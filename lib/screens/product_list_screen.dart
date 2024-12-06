@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:alsaif_gallery/provider/AuthProvider.dart';
+import 'package:alsaif_gallery/provider/FavoriteProvider.dart';
 import 'package:alsaif_gallery/screens/SearchScreen.dart';
 import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,7 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   List<dynamic> products = [];
   String sortBy = 'Popularity';
+  bool isLoading = true;
   Map<String, bool> filterOptions = {
     'Size': false,
     'Color': false,
@@ -32,26 +33,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            "https://alsaifgallery.onrender.com/api/v1/product/getAllProducts?hasDiscount=true"),
+          "https://alsaifgallery.onrender.com/api/v1/product/getAllProducts?hasDiscount=true",
+        ),
       );
 
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
+        final data = json.decode(response.body);
 
-        if (jsonData != null &&
-            jsonData['data'] != null &&
-            jsonData['data']['products'] is List) {
+        if (data != null &&
+            data['data'] != null &&
+            data['data']['products'] is List) {
           setState(() {
-            products = jsonData['data']['products'];
+            products =
+                List<Map<String, dynamic>>.from(data['data']['products']);
+            isLoading = false; // End loading state after fetching
           });
         } else {
           throw Exception('"products" is not a list or is null');
         }
       } else {
-        throw Exception('Failed to fetch products');
+        throw Exception(
+            'Failed to fetch products with status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching products: $e');
+      setState(() {
+        isLoading = false; // Ensure loading stops even on error
+      });
     }
   }
 
@@ -214,9 +222,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(
-                      token: 'token',
-                    ),
+                    builder: (context) => FavoritesScreen(),
                   ),
                 );
               },
@@ -224,176 +230,219 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ],
         ),
       ),
-      body: products.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(),
+      body: isLoading
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 120),
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: const Image(
+                    image: AssetImage('assets/images/loading-gif.gif'),
+                  ),
+                ),
+              ),
             )
-          : Column(
-              children: [
-                // Title Section moved to the body
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Daily Offers',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '(${discountedProducts.length} products)',
-                        style: TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 1, horizontal: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+          : products.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 60),
+                    child: SingleChildScrollView(
+                      // Wrap with SingleChildScrollView to prevent overflow
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Keep content centered
                         children: [
-                          IconButton(
-                            icon: Icon(Icons.sort),
-                            onPressed: openSortDialog,
-                          ),
-                          Text(
-                            'Sort',
-                            style: TextStyle(fontSize: 12),
+                          SizedBox(
+                            height: 240, // Adjust size of the image
+                            width: 240,
+                            child: const Image(
+                              image:
+                                  AssetImage('assets/images/cartman.png!bw700'),
+                              fit: BoxFit.contain,
+                            ),
+                          ), // Spacing between image and text
+                          const Text(
+                            "Oops! No offered products found.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11.0,
+                              color: Colors.black,
+                            ),
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.filter_list),
-                            onPressed: openFilterDialog,
-                          ),
-                          Text(
-                            'Filter',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: GridView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 11, horizontal: 5),
-                    itemCount: products.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      childAspectRatio: 0.7,
                     ),
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      final hasDiscount = product.containsKey('discount') &&
-                          product['discount'] != null;
-                      final hasDiscountPercentage =
-                          product.containsKey('discountPercentage') &&
-                              product['discountPercentage'] != null;
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 184, 183, 183),
-                            width: 1.0,
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Title Section moved to the body
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Daily Offers',
+                            style: TextStyle(fontSize: 14),
                           ),
-                          borderRadius: BorderRadius.circular(8.0),
+                          SizedBox(width: 8),
+                          Text(
+                            '(${discountedProducts.length} products)',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 1, horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.sort),
+                                onPressed: openSortDialog,
+                              ),
+                              Text(
+                                'Sort',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.filter_list),
+                                onPressed: openFilterDialog,
+                              ),
+                              Text(
+                                'Filter',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 11, horizontal: 5),
+                        itemCount: products.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                          childAspectRatio: 0.7,
                         ),
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          final hasDiscount = product.containsKey('discount') &&
+                              product['discount'] != null;
+                          final hasDiscountPercentage =
+                              product.containsKey('discountPercentage') &&
+                                  product['discountPercentage'] != null;
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color.fromARGB(255, 184, 183, 183),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Stack(
                               children: [
-                                Expanded(
-                                  child: Image.network(
-                                    product['imageIds'][0],
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                  ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Image.network(
+                                        product['imageIds'][0],
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        product['name'] ?? 'No name',
+                                        style: const TextStyle(),
+                                      ),
+                                    ),
+                                    if (hasDiscount)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: Text(
+                                          '${product['price']}',
+                                          style: const TextStyle(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Text(
+                                        'SAR ${product['discount'] ?? product['price']}',
+                                        style: const TextStyle(
+                                          color: Color.fromARGB(255, 194, 6, 6),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    product['name'] ?? 'No name',
-                                    style: const TextStyle(),
-                                  ),
-                                ),
-                                if (hasDiscount)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Text(
-                                      '${product['price']}',
-                                      style: const TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                        color: Colors.grey,
+                                if (hasDiscountPercentage)
+                                  Positioned(
+                                    top: 0.0,
+                                    right: 0.0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0, vertical: 2.0),
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromARGB(
+                                            255, 194, 6, 6),
+                                        borderRadius:
+                                            BorderRadius.circular(4.0),
+                                      ),
+                                      child: Text(
+                                        '${product['discountPercentage']}% \nOFF',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10.0,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: Text(
-                                    'SAR ${product['discount'] ?? product['price']}',
-                                    style: const TextStyle(
-                                      color: Color.fromARGB(255, 194, 6, 6),
+                                Positioned(
+                                  top: 0.0,
+                                  left: 0.0,
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.favorite_border,
+                                      color: Colors.black,
                                     ),
+                                    onPressed: () {
+                                      addToFavorites(product);
+                                    },
                                   ),
                                 ),
                               ],
                             ),
-                            if (hasDiscountPercentage)
-                              Positioned(
-                                top: 0.0,
-                                right: 0.0,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0, vertical: 2.0),
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(255, 194, 6, 6),
-                                    borderRadius: BorderRadius.circular(4.0),
-                                  ),
-                                  child: Text(
-                                    '${product['discountPercentage']}% \nOFF',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            Positioned(
-                              top: 0.0,
-                              left: 0.0,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.favorite_border,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () {
-                                  addToFavorites(product);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
     );
   }
 }

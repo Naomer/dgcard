@@ -4,6 +4,9 @@ import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:alsaif_gallery/language_provider.dart';
+import 'package:flutter/gestures.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -65,6 +68,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
+  Future<void> _saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userToken', token);
+  }
+
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -109,6 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var languageProvider = Provider.of<LanguageProvider>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -217,9 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => FavoritesScreen(
-                                        token: 'token',
-                                      )),
+                                  builder: (context) => FavoritesScreen()),
                             );
                           },
                         ),
@@ -241,6 +248,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: const Color.fromARGB(255, 250, 249, 249),
                       child: Column(
                         children: [
+                          ListTile(
+                            title: Text(languageProvider.isArabic
+                                ? 'Change to English'
+                                : 'تغير الى العربية'),
+                            trailing: Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              languageProvider.toggleLanguage();
+                            },
+                          ),
                           ListTile(
                             title: Text(
                               'Allow Notifications',

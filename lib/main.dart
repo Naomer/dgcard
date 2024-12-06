@@ -1,5 +1,7 @@
-import 'package:alsaif_gallery/provider/CartProvider.dart';
 import 'package:alsaif_gallery/provider/AuthProvider.dart';
+import 'package:alsaif_gallery/provider/CartProvider.dart';
+import 'package:alsaif_gallery/provider/FavoriteProvider.dart';
+import 'package:alsaif_gallery/screens/favorites_screen.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/language_provider.dart';
 import 'package:alsaif_gallery/screens/login_screen.dart';
@@ -80,6 +82,7 @@ class _MyAppState extends State<MyApp> {
             '/login': (context) => LoginScreen(),
             '/profile': (context) => ProfileScreen(),
             '/account': (context) => Account(),
+            '/favorites': (context) => FavoritesScreen(),
           },
         );
       },

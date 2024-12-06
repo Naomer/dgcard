@@ -142,13 +142,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
     fetchSubCategories(parentId);
   }
 
-  void navigateToProducts(String subCategoryId) {
+  void navigateToProducts(String subCategoryId, String categoryName) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ProductsScreen(
           subCategoryId: subCategoryId,
-          categoryId: '',
+          categoryId: selectedParentCategoryId, // If needed
+          categoryName: categoryName, // Pass the category name
         ),
       ),
     );
@@ -212,9 +213,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => FavoritesScreen(
-                        token: 'token',
-                      ),
+                      builder: (context) => FavoritesScreen(),
                     ),
                   );
                 },
@@ -230,7 +229,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
           Expanded(
             child: searchQuery.isNotEmpty
                 ? isLoadingSearch
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 50),
+                          child: SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: const Image(
+                              image:
+                                  AssetImage('assets/images/loading-gif.gif'),
+                            ),
+                          ),
+                        ),
+                      )
                     : filteredProducts.isEmpty
                         ? const Center(child: Text("No products found"))
                         : ListView.builder(
@@ -250,7 +261,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         width: MediaQuery.of(context).size.width * 0.25,
                         color: Colors.grey[200],
                         child: isLoadingParent
-                            ? const Center(child: CircularProgressIndicator())
+                            ? const Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 50),
+                                  child: SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: const Image(
+                                      image: AssetImage(
+                                          'assets/images/loading-gif.gif'),
+                                    ),
+                                  ),
+                                ),
+                              )
                             : parentCategories.isEmpty
                                 ? const Center(
                                     child: Text("No categories available"))
@@ -303,7 +326,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       Expanded(
                         flex: 3,
                         child: isLoadingSub
-                            ? const Center(child: CircularProgressIndicator())
+                            ? const Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 50),
+                                  child: SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: const Image(
+                                      image: AssetImage(
+                                          'assets/images/loading-gif.gif'),
+                                    ),
+                                  ),
+                                ),
+                              )
                             : subCategories.isEmpty
                                 ? const Center(
                                     child: Text("No subcategories available"))
@@ -330,7 +365,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                       return GestureDetector(
                                         onTap: () {
                                           navigateToProducts(
-                                              subCategory['_id']);
+                                            subCategory['_id'],
+                                            subCategory['categoryName'] ??
+                                                'No Name', // Pass the category name
+                                          );
                                         },
                                         child: Column(
                                           children: [
