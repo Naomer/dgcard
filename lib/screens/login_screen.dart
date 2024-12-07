@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:alsaif_gallery/screens/forgot_password_screen.dart';
 import 'package:alsaif_gallery/screens/profile_screen.dart';
 import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:alsaif_gallery/services/api_service.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +31,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final ApiService apiService = ApiService();
+
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Success'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('OK', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status']) {
+          _showSuccessDialog("Login successful!");
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['data']['token']);
           await prefs.setString('firstName', data['data']['user']['firstName']);
@@ -239,6 +263,15 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    String userType;
+    if (Platform.isAndroid) {
+      userType = 'android'; // Android users
+    } else if (Platform.isIOS) {
+      userType = 'iphone'; // iOS users
+    } else {
+      userType = 'web';
+    }
+
     final Map<String, dynamic> registrationData = {
       'firstName': firstName,
       'lastName': lastName,
@@ -247,6 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
       'mobile': phoneNumber,
       'password': password,
       'country': selectedCountry,
+      'userType': userType,
     };
 
     try {
@@ -255,24 +289,44 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode(registrationData),
       );
 
+      // Log response status and body for debugging
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        if (responseBody['status'] == true) {
+        final data = jsonDecode(response.body);
+        print('Parsed Response: $data');
+
+        if (data['status']) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => LoginScreen()),
           );
+          _showSuccessDialog("Registration successful! ${data['message']}");
+          setState(() {
+            showLoginForm = true;
+          });
         } else {
+          _showErrorDialog("Registration failed: ${data['message']}");
+        }
+      } else if (response.statusCode == 400) {
+        // Handle 400 Bad Request (Email already exists case)
+        final data = jsonDecode(response.body);
+        if (data['message'] == "Email already exists") {
           _showErrorDialog(
-              responseBody['message'] ?? 'Registration failed. Try again.');
+              "Email already exists. \nPlease use a different email.");
+        } else {
+          // Other 400 errors
+          _showErrorDialog("Bad request: ${data['message']}");
         }
       } else {
-        final responseBody = jsonDecode(response.body);
+        // Handle other non-200 status codes (e.g., server errors)
         _showErrorDialog(
-            responseBody['message'] ?? 'Registration failed. Try again.');
+            "Registration failed. Status code: ${response.statusCode}");
       }
     } catch (e) {
-      _showErrorDialog('Network error: ${e.toString()}');
+      // Handle network or other errors
+      _showErrorDialog("Network error: ${e.toString()}");
     }
   }
 
@@ -380,7 +434,38 @@ class _LoginScreenState extends State<LoginScreen> {
             border: InputBorder.none,
           ),
         ),
-        SizedBox(height: 12),
+        SizedBox(height: 15),
+        Text(
+          'Country',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 3),
+        GestureDetector(
+          onTap: () {
+            showCountryPicker(
+              context: context,
+              showPhoneCode: false,
+              onSelect: (Country country) {
+                setState(() {
+                  selectedCountry = country.name;
+                });
+              },
+            );
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 248, 246, 246),
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              selectedCountry,
+              style: TextStyle(fontSize: 14, color: Colors.black),
+            ),
+          ),
+        ),
+        SizedBox(height: 15),
 
         // Label for Email Address
         Text(
