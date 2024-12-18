@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:alsaif_gallery/provider/CartProvider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:alsaif_gallery/screens/CartScreen.dart';
+import 'package:alsaif_gallery/widgets/MainScreen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -55,8 +57,99 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void addToCart() {
+    if (productData.isEmpty) return;
+
+    print('Raw Product Data Images: ${productData['imageIds']}');
+
+    final imageUrl =
+        productData['imageIds'] != null && productData['imageIds'].isNotEmpty
+            ? productData['imageIds'][0]
+            : '';
+
+    print('Image URL for cart: $imageUrl');
+
+    final cartProduct = {
+      'id': productData['_id'],
+      'name': productData['name'],
+      'price': double.tryParse(productData['price'].toString()) ?? 0.0,
+      'image': imageUrl,
+      'color': productData['additionalInformation']['color'],
+      'size': productData['size'],
+      'description': productData['description'],
+    };
+
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    cartProvider.addToCart(productData, quantity);
+    cartProvider.addToCart(cartProduct, quantity);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              'Added to Cart',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  minimumSize: Size(60, 30),
+                ),
+                child: Text(
+                  'Continue Shopping',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                  // Pop back to MainScreen and update the selected index
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => MainScreen(initialIndex: 2),
+                    ),
+                    (route) => false, // Remove all routes
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black,
+                ),
+                child: Text(
+                  'Complete Purchase',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          contentPadding: EdgeInsets.all(16),
+        );
+      },
+    );
     setState(() {
       showPopup = true;
     });
@@ -145,7 +238,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
       body: productData.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 60),
+                child: SizedBox(
+                  height: 220,
+                  width: 220,
+                  child: const Image(
+                    image: AssetImage('assets/images/loading-gif.gif'),
+                  ),
+                ),
+              ),
+            )
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),

@@ -387,8 +387,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 120),
                       child: SizedBox(
-                        height: 40,
-                        width: 40,
+                        height: 220,
+                        width: 220,
                         child: const Image(
                           image: AssetImage('assets/images/loading-gif.gif'),
                         ),

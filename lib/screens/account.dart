@@ -1,6 +1,7 @@
 import 'package:alsaif_gallery/screens/About/privacy.dart';
 import 'package:alsaif_gallery/screens/login_screen.dart';
 import 'package:alsaif_gallery/language_provider.dart';
+import 'package:alsaif_gallery/widgets/MainScreen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,7 +56,9 @@ class _AccountState extends State<Account> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => LoginScreen(),
+                        ),
                       );
                     },
                     child: Row(
@@ -96,7 +99,8 @@ class _AccountState extends State<Account> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => LoginScreen()),
+                                    builder: (context) => LoginScreen(),
+                                  ),
                                 );
                               },
                           ),

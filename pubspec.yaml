@@ -58,12 +58,13 @@ dependencies:
   flutter_spinkit: ^5.2.1
   image: ^4.3.0
   smooth_page_indicator: ^1.2.0+3
-  sliding_up_panel: ^2.0.0+1
+  # sliding_up_panel: ^2.0.0+1
   country_picker: ^2.0.27
-  device_info_plus: ^11.1.1
+  # device_info_plus: ^11.1.1
   # animated_login: ^1.7.2
   # video_player: ^2.9.2
   # chewie: ^1.8.5
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_test:

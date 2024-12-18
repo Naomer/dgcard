@@ -16,4 +16,6 @@ class ApiService {
       body: body,
     );
   }
+
+  login(String email, String password) {}
 }

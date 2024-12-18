@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:country_picker/country_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -12,6 +14,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String lastName = '';
   String mobile = '';
   String selectedCountry = 'USA';
+  Country? _selectedCountry;
 
   final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
@@ -32,93 +35,255 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
 // Fetch user information from the API
   Future<void> _getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    print('Stored token: $token'); // Debug print for token
+
+    if (token == null) {
+      print('No token found');
+      return;
+    }
+
     final url =
         Uri.parse('https://alsaifgallery.onrender.com/api/v1/user/getUserInfo');
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print("Parsed API Response: $data");
 
-        // Debug: Check the structure of the response data
-        print("API Response: $data");
+        // Check the exact keys in the response
+        print("Response Keys: ${data.keys}");
 
-        // Make sure the keys exist in the response
-        if (data.containsKey('firstName') &&
-            data.containsKey('lastName') &&
-            data.containsKey('mobile')) {
-          setState(() {
-            firstName = data['firstName'];
-            lastName = data['lastName'];
-            mobile = data['mobile'];
-            firstNameController.text = firstName;
-            lastNameController.text = lastName;
-            mobileController.text = mobile;
-          });
-        } else {
-          print('Missing expected keys in response: $data');
-        }
+        // Determine the correct key for user data
+        dynamic userData = data['data'] ?? data['user'] ?? data;
+        print("User Data: $userData");
+
+        setState(() {
+          // Populate text controllers with user info
+          firstNameController.text =
+              userData['firstName'] ?? userData['first_name'] ?? '';
+          lastNameController.text =
+              userData['lastName'] ?? userData['last_name'] ?? '';
+          mobileController.text = userData['mobile'] ?? userData['phone'] ?? '';
+          countryController.text = userData['country'] ?? '';
+
+          // Update state variables
+          firstName = firstNameController.text;
+          lastName = lastNameController.text;
+          mobile = mobileController.text;
+          selectedCountry = userData['country'] ?? 'USA';
+
+          print("Updated Controllers:");
+          print("First Name: ${firstNameController.text}");
+          print("Last Name: ${lastNameController.text}");
+          print("Mobile: ${mobileController.text}");
+        });
       } else {
-        print('Failed to load user info, status code: ${response.statusCode}');
+        print('Failed to load user info: ${response.statusCode}');
+        print('Response body: ${response.body}');
       }
     } catch (e) {
       print('Error fetching user info: $e');
     }
   }
 
-  Future<void> changePassword() async {
-    if (newPasswordController.text == confirmPasswordController.text) {
-      final url = Uri.parse(
-          'http://alsaifgallery.onrender.com/api/v1/user/changePassword');
-      final body = jsonEncode({
-        'oldPassword': oldPasswordController.text,
-        'newPassword': newPasswordController.text,
-      });
+  Future<void> _changePassword() async {
+    // Validate input fields
+    if (oldPasswordController.text.isEmpty ||
+        newPasswordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
+      _showErrorDialog('Please fill in all password fields');
+      return;
+    }
 
-      try {
-        final response = await http.post(
-          url,
-          headers: {"Content-Type": "application/json"},
-          body: body,
-        );
+    // Check if new passwords match
+    if (newPasswordController.text != confirmPasswordController.text) {
+      _showErrorDialog('New passwords do not match');
+      return;
+    }
 
-        if (response.statusCode == 200) {
-          print('Password changed successfully');
-        } else {
-          print('Failed to change password');
-        }
-      } catch (e) {
-        print('Error changing password: $e');
+    // Retrieve token from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      _showErrorDialog('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    // API endpoint for changing password
+    final url = Uri.parse(
+        'https://alsaifgallery.onrender.com/api/v1/user/changePassword');
+
+    try {
+      // Prepare the request body
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'oldPassword': oldPasswordController.text,
+          'newPassword': newPasswordController.text,
+          'confirmPassword': confirmPasswordController.text,
+        }),
+      );
+
+      // Parse the response
+      final responseBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Success scenario
+        _showSuccessDialog('Password changed successfully');
+
+        // Clear password fields after successful change
+        oldPasswordController.clear();
+        newPasswordController.clear();
+        confirmPasswordController.clear();
+      } else {
+        // Error scenario
+        final errorMessage =
+            responseBody['message'] ?? 'Failed to change password';
+        _showErrorDialog(errorMessage);
       }
-    } else {
-      print('New password and confirm password do not match');
+    } catch (e) {
+      // Network or unexpected error
+      _showErrorDialog('An error occurred. Please try again.');
+      print('Password change error: $e');
     }
   }
 
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Success'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('OK', style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('OK', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> updateProfile() async {
+    // Validate input fields
+    if (firstNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        mobileController.text.isEmpty) {
+      _showErrorDialog('Please fill in all required fields');
+      return;
+    }
+
+    // Retrieve token from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      _showErrorDialog('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    // API endpoint for updating profile
     final url = Uri.parse(
-        'http://alsaifgallery.onrender.com/api/v1/user/updateProfile/6710faf54f70141c97cf7dd8');
-    final body = jsonEncode({
-      'firstName': firstNameController.text,
-      'lastName': lastNameController.text,
-      'mobile': mobileController.text,
-      'country': selectedCountry,
-    });
+        'https://alsaifgallery.onrender.com/api/v1/user/updateProfile');
 
     try {
+      // Prepare the request body
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
-        body: body,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'mobile': mobileController.text,
+          'country': countryController.text,
+        }),
       );
 
+      // Parse the response
+      final responseBody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        print('Profile updated successfully');
+        // Success scenario
+        // Update SharedPreferences with new user data
+        await prefs.setString('firstName', firstNameController.text);
+        await prefs.setString('lastName', lastNameController.text);
+        await prefs.setString('mobile', mobileController.text);
+        await prefs.setString('country', countryController.text);
+
+        _showSuccessDialog('Profile updated successfully');
+
+        // Optionally refresh user info
+        await _getUserInfo();
       } else {
-        print('Failed to update profile');
+        // Error scenario
+        final errorMessage =
+            responseBody['message'] ?? 'Failed to update profile';
+        _showErrorDialog(errorMessage);
       }
     } catch (e) {
-      print('Error updating profile: $e');
+      // Network or unexpected error
+      _showErrorDialog('An error occurred. Please try again.');
+      print('Profile update error: $e');
     }
+  }
+
+  void _showCountryPicker() {
+    showCountryPicker(
+      context: context,
+      showPhoneCode: false,
+      onSelect: (Country country) {
+        setState(() {
+          _selectedCountry = country;
+          selectedCountry = country.name;
+          countryController.text = country.name;
+        });
+      },
+    );
   }
 
   @override
@@ -163,12 +328,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   SizedBox(height: 20),
                   Center(
                     child: ElevatedButton(
-                      onPressed: changePassword,
+                      onPressed: _changePassword,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
                         minimumSize:
-                            Size(MediaQuery.of(context).size.width * 0.9, 50),
+                            Size(MediaQuery.of(context).size.width * 0.8, 40),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(0),
                         ),
@@ -205,7 +370,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   SizedBox(height: 4.0),
                   _buildTextField(mobileController, 'Mobile', isNumeric: true),
-                  _buildCountryDropdown(),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: countryController,
+                    readOnly: true, // Make the field read-only
+                    onTap: _showCountryPicker, // Open country picker on tap
+                    decoration: InputDecoration(
+                      labelText: 'Country',
+                      prefixIcon: Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.arrow_drop_down),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a country';
+                      }
+                      return null;
+                    },
+                  ),
                   SizedBox(height: 20),
                   Center(
                     child: ElevatedButton(
@@ -250,45 +432,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               obscureText: obscureText,
               keyboardType:
                   isNumeric ? TextInputType.number : TextInputType.text,
-              decoration: InputDecoration(
-                labelText: '',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCountryDropdown() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.8,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Country',
-              style: TextStyle(fontSize: 11.0),
-            ),
-            SizedBox(height: 4.0),
-            DropdownButtonFormField<String>(
-              value: selectedCountry,
-              onChanged: (value) {
-                setState(() {
-                  selectedCountry = value!;
-                });
-              },
-              items: countries.map((country) {
-                return DropdownMenuItem<String>(
-                  value: country,
-                  child: Text(country),
-                );
-              }).toList(),
               decoration: InputDecoration(
                 labelText: '',
                 border: OutlineInputBorder(),

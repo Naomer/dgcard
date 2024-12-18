@@ -323,7 +323,15 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 5),
         ],
         isLoadingAds
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: SizedBox(
+                  height: 220,
+                  width: 220,
+                  child: const Image(
+                    image: AssetImage('assets/images/loading-gif.gif'),
+                  ),
+                ),
+              )
             : advertisements.isEmpty
                 ? const Center(child: Text("No advertisements"))
                 : buildAdvertisements(),
@@ -401,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildSubCategoryCovers() {
     if (isLoadingSubCategoryCovers) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center();
     }
 
     if (subCategoryCovers.isEmpty) {

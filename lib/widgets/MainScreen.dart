@@ -80,12 +80,16 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 class MainScreen extends StatefulWidget {
+  final int? initialIndex;
+
+  const MainScreen({Key? key, this.initialIndex}) : super(key: key);
+
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+class MainScreenState extends State<MainScreen> {
+  late int _selectedIndex;
   bool _isLoggedIn = false;
 
   // Define GlobalKeys for each screen's Navigator
@@ -109,6 +113,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex ?? 0;
     _checkLoginState();
   }
 
@@ -121,7 +126,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Handle bottom navigation bar tab selection
-  void _onTabSelected(int index) {
+  void onTabSelected(int index) {
     if (_selectedIndex == index) {
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
     } else {
@@ -166,12 +171,12 @@ class _MainScreenState extends State<MainScreen> {
           _buildNavItem(
             _isLoggedIn
                 ? Icons.account_circle_sharp
-                : Icons.account_circle_outlined,
+                : Icons.account_circle_sharp,
             _isLoggedIn ? "   Account   " : "   Account   ",
             4,
           ),
         ],
-        onTap: _onTabSelected,
+        onTap: onTabSelected,
       ),
       resizeToAvoidBottomInset: true,
     );
@@ -216,59 +221,71 @@ class _MainScreenState extends State<MainScreen> {
 
   // Custom widget for Cart navigation item
   Widget _buildCartNavItem() {
-    final cartItemCount = 0; // Replace with actual cart item count
     final isSelected = _selectedIndex == 2;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final cartItemCount = cartProvider.cartItemCount;
+        return Stack(
+          clipBehavior: Clip.none,
           children: [
-            Stack(
-              alignment: Alignment.center,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.shopping_cart_outlined,
-                  size: 26,
-                  color: isSelected
-                      ? const Color.fromARGB(255, 196, 58, 49)
-                      : const Color.fromARGB(255, 69, 69, 69),
-                ),
-                if (cartItemCount > 0)
-                  Positioned(
-                    top: -5,
-                    left: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 197, 43, 32),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '$cartItemCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 26,
+                      color: isSelected
+                          ? const Color.fromARGB(255, 196, 58, 49)
+                          : const Color.fromARGB(255, 69, 69, 69),
+                    ),
+                    if (cartItemCount > 0)
+                      Positioned(
+                        top: -1,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 197, 43, 32),
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: BoxConstraints(
+                            minWidth: 15,
+                            minHeight: 15,
+                          ),
+                          child: Center(
+                            child: Text(
+                              cartItemCount > 99
+                                  ? '99+'
+                                  : cartItemCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "    Cart     ",
+                  style: TextStyle(
+                    color: isSelected
+                        ? const Color.fromARGB(255, 175, 43, 34)
+                        : const Color.fromARGB(255, 83, 83, 83),
+                    fontSize: 9,
                   ),
+                ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              "    Cart     ",
-              style: TextStyle(
-                color: isSelected
-                    ? const Color.fromARGB(255, 175, 43, 34)
-                    : const Color.fromARGB(255, 83, 83, 83),
-                fontSize: 9,
-              ),
-            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }

@@ -171,10 +171,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        titleSpacing: 0, // Ensures the title starts at the left edge
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Image.asset('assets/loggo.png', height: 33),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 8.0), // Adjust this for minimal space
+              child: Image.asset('assets/loggo.png', height: 36),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -206,7 +210,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Colors.grey[200],
+                        fillColor: const Color.fromARGB(255, 245, 244, 244),
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 16.0, horizontal: 14.0),
                         suffixIcon: Icon(Icons.search,
@@ -217,26 +221,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.favorite_border, color: Colors.black),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding:
+                const EdgeInsets.only(right: 1.0), // Fine-tune this if needed
+            child: IconButton(
+              icon: const Icon(Icons.favorite_border,
+                  color: Color.fromARGB(255, 107, 106, 106)),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => FavoritesScreen(),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FavoritesScreen()),
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       body: isLoading
           ? Center(
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 120),
+                padding: const EdgeInsets.only(bottom: 60),
                 child: SizedBox(
-                  height: 40,
-                  width: 40,
+                  height: 220,
+                  width: 220,
                   child: const Image(
                     image: AssetImage('assets/images/loading-gif.gif'),
                   ),

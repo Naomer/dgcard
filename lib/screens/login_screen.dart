@@ -11,8 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool showSkipButton;
+  final bool hideAppBar;
 
-  const LoginScreen({super.key, this.showSkipButton = false});
+  const LoginScreen(
+      {super.key, this.showSkipButton = false, this.hideAppBar = false});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -56,32 +58,34 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Image.asset('assets/favlog.png', height: 120),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          if (widget.showSkipButton)
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainScreen()),
-                );
-              },
-              child: Text('Skip',
-                  style: TextStyle(color: Colors.red, fontSize: 16)),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: Image.asset('assets/favlog.png', height: 120),
+              centerTitle: true,
+              backgroundColor: Colors.white,
+              elevation: 0,
+              actions: [
+                if (widget.showSkipButton)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MainScreen()),
+                      );
+                    },
+                    child: Text('Skip',
+                        style: TextStyle(color: Colors.red, fontSize: 16)),
+                  ),
+              ],
             ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Divider(height: 0.5, color: Colors.grey[300], thickness: 0.5),
+              // Divider(height: 0.5, color: Colors.grey[300], thickness: 0.5),
               SizedBox(height: 5),
               Center(
                 child: Text(
