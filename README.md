@@ -1,4 +1,4 @@
-Digital Card
+#Digital Card
 
 A modern Flutter e-commerce application inspired by the UI/UX of Alsaif Gallery, built for high performance, clean design, and scalable architecture.
 
@@ -69,7 +69,8 @@ Secure deployments
 
 🌐 Cloud-hosted backend & database
 
-📂 Project Structure
+## 📂 Project Structure
+```
 DigitalCard/
 │── lib/
 │   ├── screens/
@@ -83,6 +84,7 @@ DigitalCard/
 │   ├── routes/
 │   ├── config/
 │── README.md
+```
 
 ▶️ Getting Started
 1. Clone Repository
@@ -119,3 +121,4 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 📄 License
 
 MIT License.
+
