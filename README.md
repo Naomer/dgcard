@@ -6,7 +6,12 @@ Built with Flutter, Node.js, MongoDB, and AWS for a scalable and high-performanc
 
 ## 🔥 Tech Stack Badges
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-01579B?logo=dart&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-1A73E8?logo=dart&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-blue?logo=dart&logoColor=white&style=flat)
+![Dart](https://img.shields.io/badge/Language-Dart-0175C2?logo=dart&logoColor=white)
+
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazon-aws&logoColor=white)
@@ -122,4 +127,5 @@ Open an issue before making major changes.
 
 ## 📄 License
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
 
